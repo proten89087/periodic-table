@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Периодическая система элементов Менделеева</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #060709; color: #fff; min-height: 100vh;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; overflow-x: hidden; padding: 1vw; position: relative;
+        }
+        #particles-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        
+        h1 {
+            font-size: 1.4rem; margin-bottom: 8px; font-weight: 400; letter-spacing: 4px;
+            color: #a0aec0; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 180, 98, 0.3); z-index: 10;
+            text-align: center;
+        }
+        .search-container { z-index: 10; margin-bottom: 12px; width: 100%; max-width: 400px; position: relative; padding: 0 10px; }
+        .search-input {
+            width: 100%; padding: 10px 15px; background: rgba(22, 23, 26, 0.9);
+            border: 2px solid #2d3748; border-radius: 8px; color: #fff; font-size: 1rem;
+            outline: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center;
+        }
+        .search-input:focus { border-color: #00b462; box-shadow: 0 0 15px rgba(0, 180, 98, 0.4); }
+        
+        .table-wrapper {
+            width: 100%; max-width: 1600px; overflow-x: auto; padding: 20px 10px; z-index: 2;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .periodic-table {
+            display: grid; grid-template-columns: repeat(18, minmax(45px, 1fr));
+            grid-template-rows: repeat(10, minmax(48px, 1fr)); gap: 8px;
+            width: 100%; min-width: 950px; height: 78vh; max-height: 800px;
+            background: rgba(10, 12, 18, 0.9); backdrop-filter: blur(10px);
+            padding: 20px; border-radius: 16px; box-shadow: 0 30px 80px rgba(0,0,0,0.95);
+            border: 1px solid rgba(255, 255, 255, 0.02); position: relative;
+        }
+        .element {
+            background: #16171a; border: 2px solid currentColor; border-radius: 4px;
+            padding: 5px; display: flex; flex-direction: column; justify-content: space-between;
+            align-items: center; cursor: pointer; position: relative; user-select: none;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s, opacity 0.3s, filter 0.3s;
+        }
+        .element.fade-out { opacity: 0.15; filter: grayscale(80%) !important; pointer-events: none; }
+        .element:hover:not(.active) { transform: scale(1.2); z-index: 10; box-shadow: 0 0 15px currentColor; }
+        
+        .element .num { font-size: 0.75rem; align-self: flex-start; font-weight: bold; line-height: 1; }
+        .element .symbol { font-size: 1.4rem; font-weight: bold; text-align: center; line-height: 1; text-shadow: 0 0 8px currentColor; }
+        .element .name { font-size: 0.55rem; text-align: center; color: rgba(255, 255, 255, 0.7); font-weight: 500; }
+        .element .mass { font-size: 0.65rem; text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.8); }
+        .element .shells-list, .element .extended-info, .element .orbit-container { display: none; }
+
+        .s-element { color: #b6be5d; } .p-element { color: #00b462; }
+        .d-element { color: #ff5c5c; } .f-element { color: #b380a0; } .unknown-element { color: #a0aec0; }
+
+        .element.active {
+            transform: scale(5.5) !important; z-index: 999999 !important; 
+            box-shadow: 0 30px 70px rgba(0,0,0,0.95), 0 0 45px currentColor !important; 
+            border: 3px solid currentColor !important; padding: 6px 8px; 
+            display: flex; flex-direction: column; justify-content: flex-start;
+            opacity: 1 !important; filter: none !important; color: #fff !important;
+        }
+
+        .element.active.s-element { background: #1c200c !important; }
+        .element.active.p-element { background: #042410 !important; }
+        .element.active.d-element { background: #2b0b0b !important; }
+        .element.active.f-element { background: #260d21 !important; }
+        .element.active.unknown-element { background: #171c24 !important; }
+        
+        .element.active .num { font-size: 0.32rem; align-self: flex-start; color: #fff !important; opacity: 1 !important; }
+        .element.active .symbol { font-size: 0.95rem; margin-top: 1px; text-align: left; align-self: flex-start; color: #fff !important; text-shadow: 0 0 15px currentColor !important; opacity: 1 !important; }
+        .element.active .name { display: block; font-size: 0.34rem; text-align: left; color: #fff !important; font-weight: bold; align-self: flex-start; margin-bottom: 2px; opacity: 1 !important; }
+        .element.active .mass { font-size: 0.34rem; font-weight: bold; text-align: left; align-self: flex-start; width: 100%; border-top: 1px solid rgba(255,255,255,0.25); padding-top: 2px; margin-top: 1px; color: #fff !important; opacity: 1 !important; }
+        .element.active .shells-list { display: flex; flex-direction: column; position: absolute; right: 8px; top: 8px; font-size: 0.32rem; font-weight: bold; color: #fff !important; text-align: right; line-height: 1.1; z-index: 110; opacity: 1 !important; }
+        .element.active .extended-info { display: flex; flex-direction: column; gap: 1px; font-size: 0.23rem; color: #fff !important; text-align: left; width: 100%; margin-top: 2px; opacity: 1 !important; }
+        .extended-info div { display: flex; justify-content: space-between; line-height: 1; color: #fff !important; }
+        .extended-info span { color: rgba(255,255,255,0.6) !important; font-weight: 600; }
+        .element.active .orbit-container { display: block; position: absolute; top: 50%; left: 50%; width: 92%; height: 92%; transform: translate(-50%, -50%); pointer-events: none; z-index: 1; opacity: 0.55; filter: none !important; }
+        
+        .orbit { position: absolute; top: 50%; left: 50%; border: 1px solid currentColor; border-radius: 50%; transform: translate(-50%, -50%); animation: spin linear infinite; }
+        .electron-dot { position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%; box-shadow: 0 0 6px #fff, 0 0 10px currentColor; transform: translate(-50%, -50%); }
+        @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.1rem; margin-top: 10px; }
+            .search-input { font-size: 0.9rem; padding: 8px 12px; }
+            .element.active {
+                position: fixed !important; top: 50% !important; left: 50% !important;
+                transform: translate(-50%, -50%) scale(1) !important; width: 85vw !important;
+                max-width: 320px !important; height: 340px !important; grid-column: auto !important;
+                grid-row: auto !important; padding: 20px !important; border-radius: 12px !important;
+                box-shadow: 0 0 60px rgba(0,0,0,0.95), 0 0 35px currentColor !important;
+            }
+            .element.active .num { font-size: 1rem !important; }
+            .element.active .symbol { font-size: 3rem !important; margin-top: 5px !important; }
+            .element.active .name { font-size: 1.2rem !important; margin-bottom: 10px !important; }
+            .element.active .mass { font-size: 1.1rem !important; padding-top: 8px !important; margin-top: 5px !important; }
+            .element.active .shells-list { font-size: 0.9rem !important; right: 15px !important; top: 15px !important; line-height: 1.3 !important; }
+            .element.active .extended-info { font-size: 0.85rem !important; gap: 5px !important; margin-top: 10px !important; }
+            .element.active .extended-info div { line-height: 1.3 !important; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles-canvas"></canvas>
+    <h1>Периодическая система элементов</h1>
+    <div class="search-container"><input type="text" id="search" placeholder="Поиск элемента (на русском, символ, номер)..." autocomplete="off"></div>
+    <div class="table-wrapper">
+        <div class="periodic-table" id="table"></div>
+    </div>
+    <script>
+        const packedElements = [
+            "1|H|Водород|1|1|s|1.008|0.000089 г/см³|-259.1°C|-252.87°C","2|He|Гелий|18|1|p|4.0026|0.000178 г/см³|-272.2°C|-268.93°C",
+            "3|Li|Литий|1|2|s|6.94|0.534 г/см³|180.54°C|1342°C","4|Be|Бериллий|2|2|s|9.0122|1.85 г/см³|1287°C|2469°C",
+            "5|B|Бор|13|2|p|10.81|2.34 г/см³|2075°C|4000°C","6|C|Углерод|14|2|p|12.011|2.26 г/см³|3550°C|4827°C",
+            "7|N|Азот|15|2|p|14.007|0.00125 г/см³|-210.0°C|-195.79°C","8|O|Кислород|16|2|p|15.999|0.00143 г/см³|-218.79°C|-182.95°C",
+            "9|F|Фтор|17|2|p|18.998|0.00169 г/см³|-219.62°C|-188.12°C","10|Ne|Неон|18|2|p|20.180|0.00089 г/см³|-248.59°C|-246.08°C",
+            "11|Na|Натрий|1|3|s|22.990|0.97 г/см³|97.72°C|883°C","12|Mg|Магний|2|3|s|24.305|1.74 г/см³|650°C|1090°C",
+            "13|Al|Алюминий|13|3|p|26.982|2.70 г/см³|660.32°C|2519°C","14|Si|Кремний|14|3|p|28.085|2.32 г/см³|1414°C|3265°C",
+            "15|P|Фосфор|15|3|p|30.974|1.82 г/см³|44.15°C|280.5°C","16|S|Сера|16|3|p|32.06|2.06 г/см³|115.21°C|444.6°C",
+            "17|Cl|Хлор|17|3|p|35.45|0.0032 г/см³|-101.5°C|-34.04°C","18|Ar|Аргон|18|3|p|39.948|0.00178 г/см³|-189.35°C|-185.85°C",
+            "19|K|Калий|1|4|s|39.098|0.86 г/см³|63.38°C|759°C","20|Ca|Кальций|2|4|s|40.078|1.54 г/см³|842°C|1484°C",
+            "21|Sc|Скандий|3|4|d|44.956|2.98 г/см³|1541°C|2830°C","22|Ti|Титан|4|4|d|47.867|4.50 г/см³|1668°C|3287°C",
+            "23|V|Ванадий|5|4|d|50.942|6.11 г/см³|1910°C|3407°C","24|Cr|Хром|6|4|d|51.996|7.19 г/см³|1907°C|2671°C",
+            "25|Mn|Марганец|7|4|d|54.938|7.21 г/см³|1246°C|2061°C","26|Fe|Железо|8|4|d|55.845|7.87 г/см³|1538°C|2862°C",
+            "27|Co|Кобальт|9|4|d|58.933|8.90 г/см³|1495°C|2927°C","28|Ni|Никель|10|4|d|58.693|8.90 г/см³|1455°C|2913°C",
+            "29|Cu|Медь|11|4|d|63.546|8.96 г/см³|1084.6°C|2562°C","30|Zn|Цинк|12|4|d|65.38|7.14 г/см³|419.53°C|907°C",
+            "31|Ga|Галлий|13|4|p|69.723|5.91 г/см³|29.76°C|2204°C","32|Ge|Германий|14|4|p|72.630|5.32 г/см³|938.25°C|2833°C",
+            "33|As|Мышьяк|15|4|p|74.922|5.72 г/см³|817°C|614°C","34|Se|Селен|16|4|p|78.971|4.81 г/см³|221°C|685°C",
+            "35|Br|Бром|17|4|p|79.904|3.12 г/см³|-7.2°C|58.8°C","36|Kr|Криптон|18|4|p|83.798|0.0037 г/см³|-157.3°C|-153.22°C",
+            "37|Rb|Рубидий|1|5|s|85.468|1.53 г/см³|39.31°C|688°C","38|Sr|Стронций|2|5|s|87.62|2.64 г/см³|777°C|1382°C",
+            "39|Y|Иттрий|3|5|d|88.906|4.47 г/см³|1526°C|3345°C","40|Zr|Цирконий|4|5|d|91.224|6.52 г/см³|1855°C|4409°C",
+            "41|Nb|Ниобий|5|5|d|92.906|8.57 г/см³|2477°C|4744°C","42|Mo|Молибден|6|5|d|95.95|10.28 г/см³|2623°C|4639°C",
+            "43|Tc|Технеций|7|5|d|(98)|11.0 г/см³|2157°C|4265°C","44|Ru|Рутений|8|5|d|101.07|12.45 г/см³|2334°C|4150°C",
+            "45|Rh|Родий|9|5|d|102.91|12.41 г/см³|1964°C|3695°C","46|Pd|Палладий|10|5|d|106.42|12.02 г/см³|1554.9°C|2963°C",
+            "47|Ag|Серебро|11|5|d|107.87|10.49 г/см³|961.78°C|2162°C","48|Cd|Кадмий|12|5|d|112.41|8.65 г/см³|321.07°C|767°C",
+            "49|In|Индий|13|5|p|114.82|7.31 г/см³|156.6°C|2072°C","50|Sn|Олово|14|5|p|118.71|7.31 г/см³|231.93°C|2602°C",
+            "51|Sb|Сурьма|15|5|p|121.76|6.69 г/см³|630.63°C|1587°C","52|Te|Теллур|16|5|p|127.60|6.24 г/см³|449.51°C|988°C",
+            "53|I|Иод|17|5|p|126.90|4.93 г/см³|113.7°C|184.3°C","54|Xe|Ксенон|18|5|p|131.29|0.0058 г/см³|-111.7°C|-108.1°C",
+            "55|Cs|Цезий|1|6|s|132.91|1.93 г/см³|28.44°C|671°C","56|Ba|Барий|2|6|s|137.33|3.51 г/см³|727°C|1897°C",
+            "57|La|Лантан|4|9|f|138.91|6.16 г/см³|920°C|3464°C","58|Ce|Церий|5|9|f|140.12|6.77 г/см³|798°C|3443°C",
+            "59|Pr|Празеодим|6|9|f|140.91|6.77 г/см³|931°C|3520°C","60|Nd|Неодим|7|9|f|144.24|7.01 г/см³|1021°C|3074°C",
+            "61|Pm|Прометий|8|9|f|(145)|7.26 г/см³|1042°C|3000°C","62|Sm|Самарий|9|9|f|150.36|7.52 г/см³|1072°C|1794°C",
+            "63|Eu|Европий|10|9|f|151.96|5.24 г/см³|822°C|1529°C","64|Gd|Гадолиний|11|9|f|157.25|7.90 г/см³|1313°C|3273°C",
+            "65|Tb|Тербий|12|9|f|158.93|8.23 г/см³|1356°C|3230°C","66|Dy|Диспрозий|13|9|f|162.50|8.54 г/см³|1412°C|2567°C",
+            "67|Ho|Гольмий|14|9|f|164.93|8.79 г/см³|1474°C|2700°C","68|Er|Эрбий|15|9|f|167.26|9.06 г/см³|1529°C|2868°C",
+            "69|Tm|Тулий|16|9|f|168.93|9.32 г/см³|1545°C|1950°C","70|Yb|Иттербий|17|9|f|173.05|6.90 г/см³|824°C|1196°C",
+            "71|Lu|Лютеций|18|9|f|174.97|9.84 г/см³|1663°C|3402°C","72|Hf|Гафний|4|6|d|178.49|13.31 г/см³|2233°C|4603°C",
+            "73|Ta|Тантал|5|6|d|180.95|16.69 г/см³|3017°C|5458°C","74|W|Вольфрам|6|6|d|183.84|19.25 г/см³|3422°C|5555°C",
+            "75|Re|Рений|7|6|d|186.21|21.02 г/см³|3186°C|5596°C","76|Os|Осмий|8|6|d|190.23|22.59 г/см³|3033°C|5012°C",
+            "77|Ir|Иридий|9|6|d|192.22|22.56 г/см³|2446°C|4428°C","78|Pt|Платина|10|6|d|195.08|21.45 г/см³|1768°C|3825°C",
+            "79|Au|Золото|11|6|d|196.97|19.3 г/см³|1064°C|2856°C","80|Hg|Ртуть|12|6|d|200.59|13.53 г/см³|-38.83°C|356.73°C",
+            "81|Tl|Таллий|13|6|p|204.38|11.85 г/см³|304°C|1473°C","82|Pb|Свинец|14|6|p|207.2|11.34 г/см³|327.46°C|1749°C",
+            "83|Bi|Висмут|15|6|p|208.98|9.78 г/см³|271.3°C|1564°C","84|Po|Полоний|16|6|p|(209)|9.20 г/см³|254°C|962°C",
+            "85|At|Астат|17|6|p|(210)|6.17 г/см³|302°C|337°C","86|Rn|Радон|18|6|p|(222)|0.0097 г/см³|-71°C|-61.7°C",
+            "87|Fr|Франций|1|7|s|(223)|2.48 г/см³|27°C|677°C","88|Ra|Радий|2|7|s|(226)|5.5 г/см³|700°C|1737°C",
+            "89|Ac|Актиний|4|10|f|(227)|10.07 г/см³|1050°C|3198°C","90|Th|Торий|5|10|f|232.04|11.72 г/см³|1750°C|4788°C",
+            "91|Pa|Протактиний|6|10|f|231.04|15.37 г/см³|1572°C|4000°C","92|U|Уран|7|10|f|238.03|19.16 г/см³|1132°C|4131°C",
+            "93|Np|Нептуний|8|10|f|(237)|20.45 г/см³|639°C|4174°C","94|Pu|Плутоний|9|10|f|(244)|19.82 г/см³|639.4°C|3228°C",
+            "95|Am|Америций|10|10|f|(243)|12.0 г/см³|1176°C|2607°C","96|Cm|Кюрий|11|10|f|(247)|13.51 г/см³|1340°C|3110°C",
+            "97|Bk|Берклий|12|10|f|(247)|14.78 г/см³|986°C|2627°C","98|Cf|Калифорний|13|10|f|(251)|15.1 г/см³|900°C|1470°C",
+            "99|Es|Эйнштейний|14|10|f|(252)|8.84 г/см³|860°C|Неизв.","100|Fm|Фермий|15|10|f|(257)|Неизв.|1527°C|Неизв.",
+            "101|Md|Менделевий|16|10|f|(258)|Неизв.|827°C|Неизв.","102|No|Нобелий|17|10|f|(259)|Неизв.|827°C|Неизв.",
+            "103|Lr|Лоуренсий|18|10|f|(262)|Неизв.|1627°C|Неизв.","104|Rf|Резерфордий|4|7|d|(267)|23.2 г/см³|2100°C|5500°C",
+            "105|Db|Дубний|5|7|d|(268)|29.3 г/см³|Неизв.|Неизв.","106|Sg|Сиборгий|6|7|d|(269)|35.0 г/см³|Неизв.|Неизв.",
+            "107|Bh|Борий|7|7|d|(270)|37.1 г/см³|Неизв.|Неизв.","108|Hs|Хассий|8|7|d|(269)|40.7 г/см³|Неизв.|Неизв.",
+            "109|Mt|Мейтнерий|9|7|u|(278)|37.4 г/см³|Неизв.|Неизв.","110|Ds|Дармштадтий|10|7|u|(281)|34.8 г/см³|Неизв.|Неизв.",
+            "111|Rg|Рентгений|11|7|u|(282)|28.7 г/см³|Неизв.|Неизв.","112|Cn|Коперниций|12|7|d|(285)|14.0 г/см³|Неизв.|101°C",
+            "113|Nh|Нихоний|13|7|u|(286)|16.0 г/см³|430°C|1130°C","114|Fl|Флеровий|14|7|p|(289)|11.4 г/см³|70°C|150°C",
+            "115|Mc|Московий|15|7|u|(290)|13.5 г/см³|400°C|1100°C","116|Lv|Ливерморий|16|7|u|(293)|12.9 г/см³|430°C|830°C",
+            "117|Ts|Теннессин|17|7|u|(294)|7.2 г/см³|400°C|550°C","118|Og|Оганесон|18|7|p|(294)|5.0 г/см³|50°C|80°C"
+        ];
+        const table = document.getElementById('table');
+        const classMap = { 's': 's-element', 'p': 'p-element', 'd': 'd-element', 'f': 'f-element', 'u': 'unknown-element' };
+
+        function calculateShells(num) {
+            if (num <= 2) return [num];
+            if (num <= 10) return [2, num - 2];
+            if (num <= 18) return [2, 8, num - 10];
+            if (num <= 36) {
+                if (num <= 20) return [2, 8, 8, num - 18];
+                return [2, 8, 8 + (num - 20), 2];
+            }
+            if (num <= 54) {
+                if (num <= 38) return [2, 8, 18, 8, num - 36];
+                return [2, 8, 18, 8 + (num - 38), 2];
+            }
+            if (num <= 86) {
+                if (num <= 56) return [2, 8, 18, 18, 8, num - 54];
+                if (num <= 71) return [2, 8, 18, 18 + (num - 56), 9, 2];
+                return [2, 8, 18, 32, 10 + (num - 72), 2];
+            }
+            if (num <= 118) {
+                if (num <= 88) return [2, 8, 18, 32, 18, 8, num - 86];
+                if (num <= 103) return [2, 8, 18, 32, 18 + (num - 88), 9, 2];
+                return [2, 8, 18, 32, 32, 10 + (num - 104), 2];
+            }
+            return [];
+        }
+
+        packedElements.forEach(raw => {
+            const p = raw.split('|');
+            const el = { num: p[0], symbol: p[1], name: p[2], col: p[3], row: p[4], category: classMap[p[5]], mass: p[6], density: p[7], melt: p[8], boil: p[9] };
+            el.shells = calculateShells(parseInt(el.num));
+
+            const cell = document.createElement('div');
+            cell.className = `element ${el.category}`;
+            cell.style.gridColumn = el.col; cell.style.gridRow = el.row;
+            cell.setAttribute('data-name', el.name.toLowerCase());
+            cell.setAttribute('data-symbol', el.symbol.toLowerCase());
+            cell.setAttribute('data-num', el.num);
+
+            cell.innerHTML = `
+                <div class="num">${el.num}</div>
+                <div class="shells-list">${el.shells.join('<br>')}</div>
+                <div class="symbol">${el.symbol}</div>
+                <div class="name">${el.name}</div>
+                <div class="mass">${el.mass}</div>
+                <div class="extended-info">
+                    <div><span>Плотн:</span> ${el.density}</div>
+                    <div><span>Плавл:</span> ${el.melt}</div>
+                    <div><span>Кип:</span> ${el.boil}</div>
+                </div>
+                <div class="orbit-container"></div>
+            `;
+
+            cell.onclick = (e) => {
+                e.stopPropagation();
+                const currentActive = document.querySelector('.element.active');
+                if (currentActive) {
+                    currentActive.classList.remove('active');
+                    currentActive.querySelector('.orbit-container').innerHTML = '';
+                }
+                cell.classList.add('active');
+
+                const container = cell.querySelector('.orbit-container');
+                container.innerHTML = '';
+                const totalShells = el.shells.length;
+
+                el.shells.forEach((electronsCount, index) => {
+                    const orbit = document.createElement('div');
+                    orbit.className = 'orbit';
+                    const sizePercent = 30 + ((index + 1) / totalShells) * 65;
+                    orbit.style.width = `${sizePercent}%`; orbit.style.height = `${sizePercent}%`;
+                    orbit.style.animationDuration = `${6 + index * 3}s`;
+                    if (index % 2 === 1) orbit.style.animationDirection = 'reverse';
+
+                    for (let i = 0; i < electronsCount; i++) {
+                        const dot = document.createElement('div');
+                        dot.className = 'electron-dot';
+                        const angle = (i * 2 * Math.PI) / electronsCount;
+                        dot.style.left = `${50 + 50 * Math.cos(angle)}%`;
+                        dot.style.top = `${50 + 50 * Math.sin(angle)}%`;
+                        orbit.appendChild(dot);
+                    }
+                    container.appendChild(orbit);
+                });
+            };
+            table.appendChild(cell);
+        });
+
+        const searchInput = document.getElementById('search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            document.querySelectorAll('.element').forEach(cell => {
+                if (query === "") { cell.classList.remove('fade-out'); }
+                else if (cell.getAttribute('data-name').includes(query) || cell.getAttribute('data-symbol').includes(query) || cell.getAttribute('data-num') === query) {
+                    cell.classList.remove('fade-out');
+                } else { cell.classList.add('fade-out'); }
+            });
+        });
+
+        window.onclick = () => {
+            const currentActive = document.querySelector('.element.active');
+            if (currentActive) { currentActive.classList.remove('active'); currentActive.querySelector('.orbit-container').innerHTML = ''; }
+        };
+
+        const canvas = document.getElementById('particles-canvas'); const ctx = canvas.getContext('2d');
+        let particles = []; function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5; this.vx = (Math.random() - 0.5) * 0.2; this.vy = (Math.random() - 0.5) * 0.2;
+                this.hue = Math.random() > 0.5 ? 145 : 0;
+            }
+            update() { this.x += this.vx; this.y += this.vy; if (this.x < 0 || this.x > canvas.width) this.vx *= -1; if (this.y < 0 || this.y > canvas.height) this.vy *= -1; }
+            draw() {
+                ctx.fillStyle = `hsla(${this.hue}, 85%, 55%, 0.12)`; ctx.shadowBlur = 6; ctx.shadowColor = `hsl(${this.hue}, 85%, 55%)`;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+            }
+        }
+        for (let i = 0; i < 40; i++) particles.push(new Particle());
+        function loop() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(loop); }
+        loop();
+    </script>
+</body>
+</html>
