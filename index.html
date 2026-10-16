@@ -7,13 +7,13 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
-        /* Шрифт по референсу: компактный, плотный sans-serif */
+        /* Исправленный шрифт: четкий, жирный, сбалансированный sans-serif */
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #060709; color: #fff; min-height: 100vh;
             display: flex; flex-direction: column; justify-content: center;
             align-items: center; overflow-x: hidden; padding: 1vw; position: relative;
-            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
         }
         #particles-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
         
@@ -27,6 +27,7 @@
             width: 100%; padding: 10px 15px; background: rgba(22, 23, 26, 0.9);
             border: 2px solid #2d3748; border-radius: 8px; color: #fff; font-size: 1rem;
             outline: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center;
+            font-family: inherit; font-weight: 600;
         }
         .search-input:focus { border-color: #00b462; box-shadow: 0 0 15px rgba(0, 180, 98, 0.4); }
         
@@ -37,16 +38,17 @@
         
         .periodic-table {
             display: grid; grid-template-columns: repeat(18, minmax(65px, 1fr));
-            grid-template-rows: repeat(10, minmax(60px, 1fr)); gap: 8px;
+            grid-template-rows: repeat(10, minmax(65px, 1fr)); gap: 8px;
             width: 100%; min-width: 1200px; height: 75vh; max-height: 780px;
             background: rgba(10, 12, 18, 0.9); backdrop-filter: blur(10px);
             padding: 20px; border-radius: 16px; box-shadow: 0 30px 80px rgba(0,0,0,0.95);
             border: 1px solid rgba(255, 255, 255, 0.02); position: relative;
         }
         
+        /* Исправленные ячейки: структура один в один как на картинке Бор (В) */
         .element {
             background: #16171a; border: 2px solid currentColor; border-radius: 4px;
-            padding: 4px 5px; display: flex; flex-direction: column; justify-content: space-between;
+            padding: 4px 6px; display: flex; flex-direction: column; justify-content: space-between;
             align-items: center; cursor: pointer; position: relative; user-select: none;
             transition: transform 0.2s ease, box-shadow 0.2s, opacity 0.3s;
         }
@@ -54,55 +56,61 @@
         .element.fade-out { opacity: 0.25; filter: none !important; }
         .element:hover { transform: scale(1.12); z-index: 10; box-shadow: 0 0 12px currentColor; }
         
-        .element .num { font-size: 0.75rem; align-self: flex-start; font-weight: 700; color: rgba(255, 255, 255, 0.4); line-height: 1; }
-        .element .symbol { font-size: 1.35rem; font-weight: 700; text-align: center; line-height: 1.1; margin-top: -2px; }
-        .element .name { font-size: 0.7rem !important; text-align: center; color: #fff !important; font-weight: 800 !important; line-height: 1; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .element .mass { font-size: 0.65rem; text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.6); font-weight: 600; }
+        /* Стили текста ячеек по референсу */
+        .element .num { font-size: 0.85rem; align-self: flex-start; font-weight: 700; color: rgba(255, 255, 255, 0.4); line-height: 1; }
+        .element .symbol { font-size: 1.6rem; font-weight: 800; text-align: center; line-height: 1; margin-top: -2px; letter-spacing: -0.03em; }
+        .element .mass { font-size: 0.75rem; text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.85); font-weight: 700; letter-spacing: -0.02em; }
 
+        /* Цвета семейств */
         .s-element { color: #b6be5d; } .p-element { color: #00b462; }
         .d-element { color: #ff5c5c; } .f-element { color: #b380a0; } .unknown-element { color: #a0aec0; }
-        /* Модальное окно (карточка) в точности по референсу с третьей картинки */
+        /* Модальное окно (карточка) с объемным 3D-эффектом орбит */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4); display: none; justify-content: center;
-            align-items: center; z-index: 99999; backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.5); display: none; justify-content: center;
+            align-items: center; z-index: 99999; backdrop-filter: blur(6px);
         }
         
         .modal-card {
-            background: #190505; border: 4px solid #fff; border-radius: 16px;
+            background: #140d12; border: 4px solid #fff; border-radius: 16px;
             width: 380px; height: 380px; padding: 25px; display: flex;
             flex-direction: column; justify-content: space-between; position: relative;
             box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 30px currentColor;
             color: #fff; transition: border-color 0.3s;
+            overflow: hidden;
         }
 
-        .modal-card .num { font-size: 1.4rem; font-weight: 700; align-self: flex-start; }
-        .modal-card .symbol { font-size: 4.2rem; font-weight: 700; align-self: flex-start; line-height: 0.9; margin-top: -5px; }
-        .modal-card .name { font-size: 1.7rem; font-weight: 800; align-self: flex-start; margin-top: 5px; }
-        .modal-card .mass { font-size: 1.4rem; font-weight: 700; align-self: flex-start; margin-top: 15px; border-bottom: 2px solid rgba(255,255,255,0.3); width: 60%; padding-bottom: 5px; }
+        .modal-card .num { font-size: 1.5rem; font-weight: 700; align-self: flex-start; color: rgba(255,255,255,0.6); }
+        .modal-card .symbol { font-size: 4.5rem; font-weight: 800; align-self: flex-start; line-height: 0.9; margin-top: -2px; }
+        .modal-card .name { font-size: 1.8rem; font-weight: 800; align-self: flex-start; margin-top: 5px; }
+        .modal-card .mass { font-size: 1.4rem; font-weight: 700; align-self: flex-start; margin-top: 12px; border-bottom: 2px solid rgba(255,255,255,0.25); width: 55%; padding-bottom: 4px; }
         
-        /* Дополнительные параметры внизу слева */
-        .modal-card .extra-info { display: flex; flex-direction: column; gap: 4px; font-size: 0.95rem; font-weight: 600; margin-top: 10px; }
+        /* Дополнительные характеристики элементов */
+        .modal-card .extra-info { display: flex; flex-direction: column; gap: 5px; font-size: 0.95rem; font-weight: 700; margin-top: 10px; z-index: 5; }
         .modal-card .extra-info div { display: flex; gap: 8px; }
-        .modal-card .extra-info span { color: rgba(255,255,255,0.5); }
+        .modal-card .extra-info span { color: rgba(255,255,255,0.4); }
 
-        /* Список электронных уровней справа вертикально */
+        /* Список электронных уровней справа */
         .modal-card .shells-vertical {
             position: absolute; right: 25px; top: 25px; display: flex;
-            flex-direction: column; gap: 8px; font-size: 1.5rem; font-weight: 700;
-            text-align: right; z-index: 10;
+            flex-direction: column; gap: 6px; font-size: 1.6rem; font-weight: 800;
+            text-align: right; z-index: 10; text-shadow: 0 20px 20px rgba(0,0,0,0.8);
         }
 
-        /* Контейнер интерактивных колец с электронами */
+        /* Контейнер интерактивных колец с поддержкой 3D перспективы */
         .modal-card .rings-container {
             position: absolute; top: 50%; left: 50%; width: 90%; height: 90%;
             transform: translate(-50%, -50%); pointer-events: none; z-index: 1;
+            perspective: 800px; transform-style: preserve-3d;
         }
         
+        /* Орбиты, вращающиеся вокруг своей оси */
         .modal-orbit {
-            position: absolute; top: 50%; left: 50%; border: 2px solid rgba(255,255,255,0.25);
-            border-radius: 50%; transform: translate(-50%, -50%);
-            animation: spin linear infinite;
+            position: absolute; top: 50%; left: 50%; 
+            border: 2px solid rgba(255,255,255,0.22); border-radius: 50%;
+            transform-style: preserve-3d;
+            /* Наклон кольца + вращение вокруг своей оси */
+            animation: orbit3DSpin linear infinite;
         }
         
         .modal-electron {
@@ -111,12 +119,18 @@
             transform: translate(-50%, -50%);
         }
 
+        /* Анимация вращения кольца вокруг своей оси наклонной плоскости */
+        @keyframes orbit3DSpin {
+            0% { transform: translate(-50%, -50%) rotateX(70deg) rotateY(15deg) rotateZ(0deg); }
+            100% { transform: translate(-50%, -50%) rotateX(70deg) rotateY(15deg) rotateZ(360deg); }
+        }
+
         @media (max-width: 768px) {
-            .modal-card { width: 90vw; height: 90vw; max-width: 360px; max-height: 360px; padding: 20px; }
-            .modal-card .symbol { font-size: 3.5rem; }
-            .modal-card .name { font-size: 1.4rem; }
+            .modal-card { width: 92vw; height: 92vw; max-width: 360px; max-height: 360px; padding: 20px; }
+            .modal-card .symbol { font-size: 3.8rem; }
+            .modal-card .name { font-size: 1.5rem; }
             .modal-card .mass { font-size: 1.2rem; }
-            .modal-card .shells-vertical { font-size: 1.2rem; right: 20px; top: 20px; }
+            .modal-card .shells-vertical { font-size: 1.3rem; right: 20px; top: 20px; }
         }
     </style>
 </head>
@@ -132,381 +146,381 @@
         <div class="periodic-table">
             <!-- Период 1 -->
             <div class="element s-element" data-num="1" data-name="Водород" data-sym="H" data-shells="1" data-density="0.000089" data-melt="-259°C" data-boil="-253°C" style="grid-column: 1; grid-row: 1;">
-                <div class="num">1</div><div class="symbol">H</div><div class="name">Водород</div><div class="mass">1.008</div>
+                <div class="num">1</div><div class="symbol">H</div><div class="mass">1.008</div>
             </div>
             <div class="element p-element" data-num="2" data-name="Гелий" data-sym="He" data-shells="2" data-density="0.000178" data-melt="-272°C" data-boil="-269°C" style="grid-column: 18; grid-row: 1;">
-                <div class="num">2</div><div class="symbol">He</div><div class="name">Гелий</div><div class="mass">4.0026</div>
+                <div class="num">2</div><div class="symbol">He</div><div class="mass">4.0026</div>
             </div>
 
             <!-- Период 2 -->
             <div class="element s-element" data-num="3" data-name="Литий" data-sym="Li" data-shells="2,1" data-density="0.534" data-melt="180°C" data-boil="1342°C" style="grid-column: 1; grid-row: 2;">
-                <div class="num">3</div><div class="symbol">Li</div><div class="name">Литий</div><div class="mass">6.94</div>
+                <div class="num">3</div><div class="symbol">Li</div><div class="mass">6.94</div>
             </div>
             <div class="element s-element" data-num="4" data-name="Бериллий" data-sym="Be" data-shells="2,2" data-density="1.85" data-melt="1287°C" data-boil="2470°C" style="grid-column: 2; grid-row: 2;">
-                <div class="num">4</div><div class="symbol">Be</div><div class="name">Бериллий</div><div class="mass">9.0122</div>
+                <div class="num">4</div><div class="symbol">Be</div><div class="mass">9.0122</div>
             </div>
             <div class="element p-element" data-num="5" data-name="Бор" data-sym="B" data-shells="2,3" data-density="2.34" data-melt="2075°C" data-boil="4000°C" style="grid-column: 13; grid-row: 2;">
-                <div class="num">5</div><div class="symbol">B</div><div class="name">Бор</div><div class="mass">10.81</div>
+                <div class="num">5</div><div class="symbol">B</div><div class="mass">10.81</div>
             </div>
             <div class="element p-element" data-num="6" data-name="Углерод" data-sym="C" data-shells="2,4" data-density="2.26" data-melt="3550°C" data-boil="4827°C" style="grid-column: 14; grid-row: 2;">
-                <div class="num">6</div><div class="symbol">C</div><div class="name">Углерод</div><div class="mass">12.011</div>
+                <div class="num">6</div><div class="symbol">C</div><div class="mass">12.011</div>
             </div>
             <div class="element p-element" data-num="7" data-name="Азот" data-sym="N" data-shells="2,5" data-density="0.00125" data-melt="-210°C" data-boil="-196°C" style="grid-column: 15; grid-row: 2;">
-                <div class="num">7</div><div class="symbol">N</div><div class="name">Азот</div><div class="mass">14.007</div>
+                <div class="num">7</div><div class="symbol">N</div><div class="mass">14.007</div>
             </div>
             <div class="element p-element" data-num="8" data-name="Кислород" data-sym="O" data-shells="2,6" data-density="0.00143" data-melt="-218°C" data-boil="-183°C" style="grid-column: 16; grid-row: 2;">
-                <div class="num">8</div><div class="symbol">O</div><div class="name">Кислород</div><div class="mass">15.999</div>
+                <div class="num">8</div><div class="symbol">O</div><div class="mass">15.999</div>
             </div>
             <div class="element p-element" data-num="9" data-name="Фтор" data-sym="F" data-shells="2,7" data-density="0.0017" data-melt="-220°C" data-boil="-188°C" style="grid-column: 17; grid-row: 2;">
-                <div class="num">9</div><div class="symbol">F</div><div class="name">Фтор</div><div class="mass">18.998</div>
+                <div class="num">9</div><div class="symbol">F</div><div class="mass">18.998</div>
             </div>
             <div class="element p-element" data-num="10" data-name="Неон" data-sym="Ne" data-shells="2,8" data-density="0.0009" data-melt="-249°C" data-boil="-246°C" style="grid-column: 18; grid-row: 2;">
-                <div class="num">10</div><div class="symbol">Ne</div><div class="name">Неон</div><div class="mass">20.180</div>
+                <div class="num">10</div><div class="symbol">Ne</div><div class="mass">20.180</div>
             </div>
             <!-- Период 3 -->
             <div class="element s-element" data-num="11" data-name="Натрий" data-sym="Na" data-shells="2,8,1" data-density="0.97" data-melt="98°C" data-boil="883°C" style="grid-column: 1; grid-row: 3;">
-                <div class="num">11</div><div class="symbol">Na</div><div class="name">Натрий</div><div class="mass">22.990</div>
+                <div class="num">11</div><div class="symbol">Na</div><div class="mass">22.990</div>
             </div>
             <div class="element s-element" data-num="12" data-name="Магний" data-sym="Mg" data-shells="2,8,2" data-density="1.74" data-melt="650°C" data-boil="1090°C" style="grid-column: 2; grid-row: 3;">
-                <div class="num">12</div><div class="symbol">Mg</div><div class="name">Магний</div><div class="mass">24.305</div>
+                <div class="num">12</div><div class="symbol">Mg</div><div class="mass">24.305</div>
             </div>
             <div class="element p-element" data-num="13" data-name="Алюминий" data-sym="Al" data-shells="2,8,3" data-density="2.70" data-melt="660°C" data-boil="2519°C" style="grid-column: 13; grid-row: 3;">
-                <div class="num">13</div><div class="symbol">Al</div><div class="name">Алюминий</div><div class="mass">26.982</div>
+                <div class="num">13</div><div class="symbol">Al</div><div class="mass">26.982</div>
             </div>
             <div class="element p-element" data-num="14" data-name="Кремний" data-sym="Si" data-shells="2,8,4" data-density="2.33" data-melt="1414°C" data-boil="3265°C" style="grid-column: 14; grid-row: 3;">
-                <div class="num">14</div><div class="symbol">Si</div><div class="name">Кремний</div><div class="mass">28.085</div>
+                <div class="num">14</div><div class="symbol">Si</div><div class="mass">28.085</div>
             </div>
             <div class="element p-element" data-num="15" data-name="Фосфор" data-sym="P" data-shells="2,8,5" data-density="1.82" data-melt="44°C" data-boil="280°C" style="grid-column: 15; grid-row: 3;">
-                <div class="num">15</div><div class="symbol">P</div><div class="name">Фосфор</div><div class="mass">30.974</div>
+                <div class="num">15</div><div class="symbol">P</div><div class="mass">30.974</div>
             </div>
             <div class="element p-element" data-num="16" data-name="Сера" data-sym="S" data-shells="2,8,6" data-density="2.07" data-melt="115°C" data-boil="445°C" style="grid-column: 16; grid-row: 3;">
-                <div class="num">16</div><div class="symbol">S</div><div class="name">Сера</div><div class="mass">32.06</div>
+                <div class="num">16</div><div class="symbol">S</div><div class="mass">32.06</div>
             </div>
             <div class="element p-element" data-num="17" data-name="Хлор" data-sym="Cl" data-shells="2,8,7" data-density="0.0032" data-melt="-101°C" data-boil="-34°C" style="grid-column: 17; grid-row: 3;">
-                <div class="num">17</div><div class="symbol">Cl</div><div class="name">Хлор</div><div class="mass">35.45</div>
+                <div class="num">17</div><div class="symbol">Cl</div><div class="mass">35.45</div>
             </div>
             <div class="element p-element" data-num="18" data-name="Аргон" data-sym="Ar" data-shells="2,8,8" data-density="0.00178" data-melt="-189°C" data-boil="-186°C" style="grid-column: 18; grid-row: 3;">
-                <div class="num">18</div><div class="symbol">Ar</div><div class="name">Аргон</div><div class="mass">39.948</div>
+                <div class="num">18</div><div class="symbol">Ar</div><div class="mass">39.948</div>
             </div>
 
             <!-- Период 4 -->
             <div class="element s-element" data-num="19" data-name="Калий" data-sym="K" data-shells="2,8,8,1" data-density="0.89" data-melt="63°C" data-boil="759°C" style="grid-column: 1; grid-row: 4;">
-                <div class="num">19</div><div class="symbol">K</div><div class="name">Калий</div><div class="mass">39.098</div>
+                <div class="num">19</div><div class="symbol">K</div><div class="mass">39.098</div>
             </div>
             <div class="element s-element" data-num="20" data-name="Кальций" data-sym="Ca" data-shells="2,8,8,2" data-density="1.54" data-melt="842°C" data-boil="1484°C" style="grid-column: 2; grid-row: 4;">
-                <div class="num">20</div><div class="symbol">Ca</div><div class="name">Кальций</div><div class="mass">40.078</div>
+                <div class="num">20</div><div class="symbol">Ca</div><div class="mass">40.078</div>
             </div>
             <div class="element d-element" data-num="21" data-name="Скандий" data-sym="Sc" data-shells="2,8,9,2" data-density="2.99" data-melt="1541°C" data-boil="2830°C" style="grid-column: 3; grid-row: 4;">
-                <div class="num">21</div><div class="symbol">Sc</div><div class="name">Скандий</div><div class="mass">44.956</div>
+                <div class="num">21</div><div class="symbol">Sc</div><div class="mass">44.956</div>
             </div>
             <div class="element d-element" data-num="22" data-name="Титан" data-sym="Ti" data-shells="2,8,10,2" data-density="4.50" data-melt="1668°C" data-boil="3287°C" style="grid-column: 4; grid-row: 4;">
-                <div class="num">22</div><div class="symbol">Ti</div><div class="name">Титан</div><div class="mass">47.867</div>
+                <div class="num">22</div><div class="symbol">Ti</div><div class="mass">47.867</div>
             </div>
             <div class="element d-element" data-num="23" data-name="Ванадий" data-sym="V" data-shells="2,8,11,2" data-density="6.0" data-melt="1910°C" data-boil="3407°C" style="grid-column: 5; grid-row: 4;">
-                <div class="num">23</div><div class="symbol">V</div><div class="name">Ванадий</div><div class="mass">50.942</div>
+                <div class="num">23</div><div class="symbol">V</div><div class="mass">50.942</div>
             </div>
             <div class="element d-element" data-num="24" data-name="Хром" data-sym="Cr" data-shells="2,8,13,1" data-density="7.19" data-melt="1907°C" data-boil="2671°C" style="grid-column: 6; grid-row: 4;">
-                <div class="num">24</div><div class="symbol">Cr</div><div class="name">Хром</div><div class="mass">51.996</div>
+                <div class="num">24</div><div class="symbol">Cr</div><div class="mass">51.996</div>
             </div>
             <div class="element d-element" data-num="25" data-name="Марганец" data-sym="Mn" data-shells="2,8,13,2" data-density="7.21" data-melt="1246°C" data-boil="2061°C" style="grid-column: 7; grid-row: 4;">
-                <div class="num">25</div><div class="symbol">Mn</div><div class="name">Марганец</div><div class="mass">54.938</div>
+                <div class="num">25</div><div class="symbol">Mn</div><div class="mass">54.938</div>
             </div>
             <div class="element d-element" data-num="26" data-name="Железо" data-sym="Fe" data-shells="2,8,14,2" data-density="7.87" data-melt="1538°C" data-boil="2861°C" style="grid-column: 8; grid-row: 4;">
-                <div class="num">26</div><div class="symbol">Fe</div><div class="name">Железо</div><div class="mass">55.845</div>
+                <div class="num">26</div><div class="symbol">Fe</div><div class="mass">55.845</div>
             </div>
             <div class="element d-element" data-num="27" data-name="Кобальт" data-sym="Co" data-shells="2,8,15,2" data-density="8.90" data-melt="1495°C" data-boil="2927°C" style="grid-column: 9; grid-row: 4;">
-                <div class="num">27</div><div class="symbol">Co</div><div class="name">Кобальт</div><div class="mass">58.933</div>
+                <div class="num">27</div><div class="symbol">Co</div><div class="mass">58.933</div>
             </div>
             <div class="element d-element" data-num="28" data-name="Никель" data-sym="Ni" data-shells="2,8,16,2" data-density="8.91" data-melt="1455°C" data-boil="2913°C" style="grid-column: 10; grid-row: 4;">
-                <div class="num">28</div><div class="symbol">Ni</div><div class="name">Никель</div><div class="mass">58.693</div>
+                <div class="num">28</div><div class="symbol">Ni</div><div class="mass">58.693</div>
             </div>
             <div class="element d-element" data-num="29" data-name="Медь" data-sym="Cu" data-shells="2,8,18,1" data-density="8.96" data-melt="1085°C" data-boil="2562°C" style="grid-column: 11; grid-row: 4;">
-                <div class="num">29</div><div class="symbol">Cu</div><div class="name">Медь</div><div class="mass">63.546</div>
+                <div class="num">29</div><div class="symbol">Cu</div><div class="mass">63.546</div>
             </div>
             <div class="element d-element" data-num="30" data-name="Цинк" data-sym="Zn" data-shells="2,8,18,2" data-density="7.14" data-melt="420°C" data-boil="907°C" style="grid-column: 12; grid-row: 4;">
-                <div class="num">30</div><div class="symbol">Zn</div><div class="name">Цинк</div><div class="mass">65.38</div>
+                <div class="num">30</div><div class="symbol">Zn</div><div class="mass">65.38</div>
             </div>
             <div class="element p-element" data-num="31" data-name="Галлий" data-sym="Ga" data-shells="2,8,18,3" data-density="5.91" data-melt="30°C" data-boil="2204°C" style="grid-column: 13; grid-row: 4;">
-                <div class="num">31</div><div class="symbol">Ga</div><div class="name">Галлий</div><div class="mass">69.723</div>
+                <div class="num">31</div><div class="symbol">Ga</div><div class="mass">69.723</div>
             </div>
             <div class="element p-element" data-num="32" data-name="Германий" data-sym="Ge" data-shells="2,8,18,4" data-density="5.32" data-melt="938°C" data-boil="2833°C" style="grid-column: 14; grid-row: 4;">
-                <div class="num">32</div><div class="symbol">Ge</div><div class="name">Германий</div><div class="mass">72.630</div>
+                <div class="num">32</div><div class="symbol">Ge</div><div class="mass">72.630</div>
             </div>
             <div class="element p-element" data-num="33" data-name="Мышьяк" data-sym="As" data-shells="2,8,18,5" data-density="5.73" data-melt="817°C" data-boil="614°C" style="grid-column: 15; grid-row: 4;">
-                <div class="num">33</div><div class="symbol">As</div><div class="name">Мышьяк</div><div class="mass">74.922</div>
+                <div class="num">33</div><div class="symbol">As</div><div class="mass">74.922</div>
             </div>
             <div class="element p-element" data-num="34" data-name="Селен" data-sym="Se" data-shells="2,8,18,6" data-density="4.81" data-melt="221°C" data-boil="685°C" style="grid-column: 16; grid-row: 4;">
-                <div class="num">34</div><div class="symbol">Se</div><div class="name">Селен</div><div class="mass">78.971</div>
+                <div class="num">34</div><div class="symbol">Se</div><div class="mass">78.971</div>
             </div>
             <div class="element p-element" data-num="35" data-name="Бром" data-sym="Br" data-shells="2,8,18,7" data-density="3.12" data-melt="-7°C" data-boil="59°C" style="grid-column: 17; grid-row: 4;">
-                <div class="num">35</div><div class="symbol">Br</div><div class="name">Бром</div><div class="mass">79.904</div>
+                <div class="num">35</div><div class="symbol">Br</div><div class="mass">79.904</div>
             </div>
             <div class="element p-element" data-num="36" data-name="Криптон" data-sym="Kr" data-shells="2,8,18,8" data-density="0.00373" data-melt="-157°C" data-boil="-153°C" style="grid-column: 18; grid-row: 4;">
-                <div class="num">36</div><div class="symbol">Kr</div><div class="name">Криптон</div><div class="mass">83.798</div>
+                <div class="num">36</div><div class="symbol">Kr</div><div class="mass">83.798</div>
             </div>
             <!-- Период 5 -->
             <div class="element s-element" data-num="37" data-name="Рубидий" data-sym="Rb" data-shells="2,8,18,8,1" data-density="1.53" data-melt="39°C" data-boil="688°C" style="grid-column: 1; grid-row: 5;">
-                <div class="num">37</div><div class="symbol">Rb</div><div class="name">Рубидий</div><div class="mass">85.468</div>
+                <div class="num">37</div><div class="symbol">Rb</div><div class="mass">85.468</div>
             </div>
             <div class="element s-element" data-num="38" data-name="Стронций" data-sym="Sr" data-shells="2,8,18,8,2" data-density="2.64" data-melt="777°C" data-boil="1382°C" style="grid-column: 2; grid-row: 5;">
-                <div class="num">38</div><div class="symbol">Sr</div><div class="name">Стронций</div><div class="mass">87.62</div>
+                <div class="num">38</div><div class="symbol">Sr</div><div class="mass">87.62</div>
             </div>
             <div class="element d-element" data-num="39" data-name="Иттрий" data-sym="Y" data-shells="2,8,18,9,2" data-density="4.47" data-melt="1526°C" data-boil="3336°C" style="grid-column: 3; grid-row: 5;">
-                <div class="num">39</div><div class="symbol">Y</div><div class="name">Иттрий</div><div class="mass">88.906</div>
+                <div class="num">39</div><div class="symbol">Y</div><div class="mass">88.906</div>
             </div>
             <div class="element d-element" data-num="40" data-name="Цирконий" data-sym="Zr" data-shells="2,8,18,10,2" data-density="6.52" data-melt="1855°C" data-boil="4409°C" style="grid-column: 4; grid-row: 5;">
-                <div class="num">40</div><div class="symbol">Zr</div><div class="name">Цирконий</div><div class="mass">91.224</div>
+                <div class="num">40</div><div class="symbol">Zr</div><div class="mass">91.224</div>
             </div>
             <div class="element d-element" data-num="41" data-name="Ниобий" data-sym="Nb" data-shells="2,8,18,12,1" data-density="8.57" data-melt="2477°C" data-boil="4744°C" style="grid-column: 5; grid-row: 5;">
-                <div class="num">41</div><div class="symbol">Nb</div><div class="name">Ниобий</div><div class="mass">92.906</div>
+                <div class="num">41</div><div class="symbol">Nb</div><div class="mass">92.906</div>
             </div>
             <div class="element d-element" data-num="42" data-name="Молибден" data-sym="Mo" data-shells="2,8,18,13,1" data-density="10.2" data-melt="2623°C" data-boil="4639°C" style="grid-column: 6; grid-row: 5;">
-                <div class="num">42</div><div class="symbol">Mo</div><div class="name">Молибден</div><div class="mass">95.95</div>
+                <div class="num">42</div><div class="symbol">Mo</div><div class="mass">95.95</div>
             </div>
             <div class="element d-element" data-num="43" data-name="Технеций" data-sym="Tc" data-shells="2,8,18,13,2" data-density="11.0" data-melt="2157°C" data-boil="4265°C" style="grid-column: 7; grid-row: 5;">
-                <div class="num">43</div><div class="symbol">Tc</div><div class="name">Технеций</div><div class="mass">(98)</div>
+                <div class="num">43</div><div class="symbol">Tc</div><div class="mass">(98)</div>
             </div>
             <div class="element d-element" data-num="44" data-name="Рутений" data-sym="Ru" data-shells="2,8,18,15,1" data-density="12.4" data-melt="2334°C" data-boil="4150°C" style="grid-column: 8; grid-row: 5;">
-                <div class="num">44</div><div class="symbol">Ru</div><div class="name">Рутений</div><div class="mass">101.07</div>
+                <div class="num">44</div><div class="symbol">Ru</div><div class="mass">101.07</div>
             </div>
             <div class="element d-element" data-num="45" data-name="Родий" data-sym="Rh" data-shells="2,8,18,16,1" data-density="12.4" data-melt="1964°C" data-boil="3695°C" style="grid-column: 9; grid-row: 5;">
-                <div class="num">45</div><div class="symbol">Rh</div><div class="name">Родий</div><div class="mass">102.91</div>
+                <div class="num">45</div><div class="symbol">Rh</div><div class="mass">102.91</div>
             </div>
             <div class="element d-element" data-num="46" data-name="Палладий" data-sym="Pd" data-shells="2,8,18,18" data-density="12.0" data-melt="1555°C" data-boil="2963°C" style="grid-column: 10; grid-row: 5;">
-                <div class="num">46</div><div class="symbol">Pd</div><div class="name">Палладий</div><div class="mass">106.42</div>
+                <div class="num">46</div><div class="symbol">Pd</div><div class="mass">106.42</div>
             </div>
             <div class="element d-element" data-num="47" data-name="Серебро" data-sym="Ag" data-shells="2,8,18,18,1" data-density="10.5" data-melt="961°C" data-boil="2162°C" style="grid-column: 11; grid-row: 5;">
-                <div class="num">47</div><div class="symbol">Ag</div><div class="name">Серебро</div><div class="mass">107.87</div>
+                <div class="num">47</div><div class="symbol">Ag</div><div class="mass">107.87</div>
             </div>
             <div class="element d-element" data-num="48" data-name="Кадмий" data-sym="Cd" data-shells="2,8,18,18,2" data-density="8.65" data-melt="321°C" data-boil="767°C" style="grid-column: 12; grid-row: 5;">
-                <div class="num">48</div><div class="symbol">Cd</div><div class="name">Кадмий</div><div class="mass">112.41</div>
+                <div class="num">48</div><div class="symbol">Cd</div><div class="mass">112.41</div>
             </div>
             <div class="element p-element" data-num="49" data-name="Индий" data-sym="In" data-shells="2,8,18,18,3" data-density="7.31" data-melt="156°C" data-boil="2072°C" style="grid-column: 13; grid-row: 5;">
-                <div class="num">49</div><div class="symbol">In</div><div class="name">Индий</div><div class="mass">114.82</div>
+                <div class="num">49</div><div class="symbol">In</div><div class="mass">114.82</div>
             </div>
             <div class="element p-element" data-num="50" data-name="Олово" data-sym="Sn" data-shells="2,8,18,18,4" data-density="7.26" data-melt="231°C" data-boil="2602°C" style="grid-column: 14; grid-row: 5;">
-                <div class="num">50</div><div class="symbol">Sn</div><div class="name">Олово</div><div class="mass">118.71</div>
+                <div class="num">50</div><div class="symbol">Sn</div><div class="mass">118.71</div>
             </div>
             <div class="element p-element" data-num="51" data-name="Сурьма" data-sym="Sb" data-shells="2,8,18,18,5" data-density="6.68" data-melt="630°C" data-boil="1587°C" style="grid-column: 15; grid-row: 5;">
-                <div class="num">51</div><div class="symbol">Sb</div><div class="name">Сурьма</div><div class="mass">121.76</div>
+                <div class="num">51</div><div class="symbol">Sb</div><div class="mass">121.76</div>
             </div>
             <div class="element p-element" data-num="52" data-name="Теллур" data-sym="Te" data-shells="2,8,18,18,6" data-density="6.24" data-melt="449°C" data-boil="988°C" style="grid-column: 16; grid-row: 5;">
-                <div class="num">52</div><div class="symbol">Te</div><div class="name">Теллур</div><div class="mass">127.60</div>
+                <div class="num">52</div><div class="symbol">Te</div><div class="mass">127.60</div>
             </div>
             <div class="element p-element" data-num="53" data-name="Иод" data-sym="I" data-shells="2,8,18,18,7" data-density="4.93" data-melt="113°C" data-boil="184°C" style="grid-column: 17; grid-row: 5;">
-                <div class="num">53</div><div class="symbol">I</div><div class="name">Иод</div><div class="mass">126.90</div>
+                <div class="num">53</div><div class="symbol">I</div><div class="mass">126.90</div>
             </div>
             <div class="element p-element" data-num="54" data-name="Ксенон" data-sym="Xe" data-shells="2,8,18,18,8" data-density="0.00588" data-melt="-111°C" data-boil="-108°C" style="grid-column: 18; grid-row: 5;">
-                <div class="num">54</div><div class="symbol">Xe</div><div class="name">Ксенон</div><div class="mass">131.29</div>
+                <div class="num">54</div><div class="symbol">Xe</div><div class="mass">131.29</div>
             </div>
             <!-- Период 6 -->
             <div class="element s-element" data-num="55" data-name="Цезий" data-sym="Cs" data-shells="2,8,18,18,8,1" data-density="1.93" data-melt="28°C" data-boil="671°C" style="grid-column: 1; grid-row: 6;">
-                <div class="num">55</div><div class="symbol">Cs</div><div class="name">Цезий</div><div class="mass">132.91</div>
+                <div class="num">55</div><div class="symbol">Cs</div><div class="mass">132.91</div>
             </div>
             <div class="element s-element" data-num="56" data-name="Барий" data-sym="Ba" data-shells="2,8,18,18,8,2" data-density="3.51" data-melt="727°C" data-boil="1897°C" style="grid-column: 2; grid-row: 6;">
-                <div class="num">56</div><div class="symbol">Ba</div><div class="name">Барий</div><div class="mass">137.33</div>
+                <div class="num">56</div><div class="symbol">Ba</div><div class="mass">137.33</div>
             </div>
             <!-- Заглушка Лантаноидов -->
             <div class="element f-element" data-num="57-71" data-name="Лантаноиды" data-sym="La-Lu" data-shells="" data-density="" data-melt="" data-boil="" style="grid-column: 3; grid-row: 6; pointer-events: none;">
-                <div class="num">57-71</div><div class="symbol">La-Lu</div><div class="name">Лантан.</div><div class="mass"></div>
+                <div class="num">57-71</div><div class="symbol">La-Lu</div><div class="mass"></div>
             </div>
             <div class="element d-element" data-num="72" data-name="Гафний" data-sym="Hf" data-shells="2,8,18,32,10,2" data-density="13.3" data-melt="2233°C" data-boil="4603°C" style="grid-column: 4; grid-row: 6;">
-                <div class="num">72</div><div class="symbol">Hf</div><div class="name">Гафний</div><div class="mass">178.49</div>
+                <div class="num">72</div><div class="symbol">Hf</div><div class="mass">178.49</div>
             </div>
             <div class="element d-element" data-num="73" data-name="Тантал" data-sym="Ta" data-shells="2,8,18,32,11,2" data-density="16.6" data-melt="3017°C" data-boil="5458°C" style="grid-column: 5; grid-row: 6;">
-                <div class="num">73</div><div class="symbol">Ta</div><div class="name">Тантал</div><div class="mass">180.95</div>
+                <div class="num">73</div><div class="symbol">Ta</div><div class="mass">180.95</div>
             </div>
             <div class="element d-element" data-num="74" data-name="Вольфрам" data-sym="W" data-shells="2,8,18,32,12,2" data-density="19.3" data-melt="3422°C" data-boil="5555°C" style="grid-column: 6; grid-row: 6;">
-                <div class="num">74</div><div class="symbol">W</div><div class="name">Вольфрам</div><div class="mass">183.84</div>
+                <div class="num">74</div><div class="symbol">W</div><div class="mass">183.84</div>
             </div>
             <div class="element d-element" data-num="75" data-name="Рений" data-sym="Re" data-shells="2,8,18,32,13,2" data-density="21.0" data-melt="3186°C" data-boil="5596°C" style="grid-column: 7; grid-row: 6;">
-                <div class="num">75</div><div class="symbol">Re</div><div class="name">Рений</div><div class="mass">186.21</div>
+                <div class="num">75</div><div class="symbol">Re</div><div class="mass">186.21</div>
             </div>
             <div class="element d-element" data-num="76" data-name="Осмий" data-sym="Os" data-shells="2,8,18,32,14,2" data-density="22.6" data-melt="3033°C" data-boil="5012°C" style="grid-column: 8; grid-row: 6;">
-                <div class="num">76</div><div class="symbol">Os</div><div class="name">Осмий</div><div class="mass">190.23</div>
+                <div class="num">76</div><div class="symbol">Os</div><div class="mass">190.23</div>
             </div>
             <div class="element d-element" data-num="77" data-name="Иридий" data-sym="Ir" data-shells="2,8,18,32,15,2" data-density="22.5" data-melt="2446°C" data-boil="4428°C" style="grid-column: 9; grid-row: 6;">
-                <div class="num">77</div><div class="symbol">Ir</div><div class="name">Иридий</div><div class="mass">192.22</div>
+                <div class="num">77</div><div class="symbol">Ir</div><div class="mass">192.22</div>
             </div>
             <div class="element d-element" data-num="78" data-name="Платина" data-sym="Pt" data-shells="2,8,18,32,17,1" data-density="21.5" data-melt="1768°C" data-boil="3825°C" style="grid-column: 10; grid-row: 6;">
-                <div class="num">78</div><div class="symbol">Pt</div><div class="name">Платина</div><div class="mass">195.08</div>
+                <div class="num">78</div><div class="symbol">Pt</div><div class="mass">195.08</div>
             </div>
             <div class="element d-element" data-num="79" data-name="Золото" data-sym="Au" data-shells="2,8,18,32,18,1" data-density="19.3" data-melt="1064°C" data-boil="2856°C" style="grid-column: 11; grid-row: 6;">
-                <div class="num">79</div><div class="symbol">Au</div><div class="name">Золото</div><div class="mass">196.97</div>
+                <div class="num">79</div><div class="symbol">Au</div><div class="mass">196.97</div>
             </div>
             <div class="element d-element" data-num="80" data-name="Ртуть" data-sym="Hg" data-shells="2,8,18,32,18,2" data-density="13.5" data-melt="-39°C" data-boil="357°C" style="grid-column: 12; grid-row: 6;">
-                <div class="num">80</div><div class="symbol">Hg</div><div class="name">Ртуть</div><div class="mass">200.59</div>
+                <div class="num">80</div><div class="symbol">Hg</div><div class="mass">200.59</div>
             </div>
             <div class="element p-element" data-num="81" data-name="Таллий" data-sym="Tl" data-shells="2,8,18,32,18,3" data-density="11.8" data-melt="304°C" data-boil="1473°C" style="grid-column: 13; grid-row: 6;">
-                <div class="num">81</div><div class="symbol">Tl</div><div class="name">Таллий</div><div class="mass">204.38</div>
+                <div class="num">81</div><div class="symbol">Tl</div><div class="mass">204.38</div>
             </div>
             <div class="element p-element" data-num="82" data-name="Свинец" data-sym="Pb" data-shells="2,8,18,32,18,4" data-density="11.3" data-melt="327°C" data-boil="1749°C" style="grid-column: 14; grid-row: 6;">
-                <div class="num">82</div><div class="symbol">Pb</div><div class="name">Свинец</div><div class="mass">207.2</div>
+                <div class="num">82</div><div class="symbol">Pb</div><div class="mass">207.2</div>
             </div>
             <div class="element p-element" data-num="83" data-name="Висмут" data-sym="Bi" data-shells="2,8,18,32,18,5" data-density="9.78" data-melt="271°C" data-boil="1564°C" style="grid-column: 15; grid-row: 6;">
-                <div class="num">83</div><div class="symbol">Bi</div><div class="name">Висмут</div><div class="mass">208.98</div>
+                <div class="num">83</div><div class="symbol">Bi</div><div class="mass">208.98</div>
             </div>
             <div class="element p-element" data-num="84" data-name="Полоний" data-sym="Po" data-shells="2,8,18,32,18,6" data-density="9.20" data-melt="254°C" data-boil="962°C" style="grid-column: 16; grid-row: 6;">
-                <div class="num">84</div><div class="symbol">Po</div><div class="name">Полоний</div><div class="mass">(209)</div>
+                <div class="num">84</div><div class="symbol">Po</div><div class="mass">(209)</div>
             </div>
             <div class="element p-element" data-num="85" data-name="Астат" data-sym="At" data-shells="2,8,18,32,18,7" data-density="6.2" data-melt="302°C" data-boil="337°C" style="grid-column: 17; grid-row: 6;">
-                <div class="num">85</div><div class="symbol">At</div><div class="name">Астат</div><div class="mass">(210)</div>
+                <div class="num">85</div><div class="symbol">At</div><div class="mass">(210)</div>
             </div>
             <div class="element p-element" data-num="86" data-name="Радон" data-sym="Rn" data-shells="2,8,18,32,18,8" data-density="0.0097" data-melt="-71°C" data-boil="-62°C" style="grid-column: 18; grid-row: 6;">
-                <div class="num">86</div><div class="symbol">Rn</div><div class="name">Радон</div><div class="mass">(222)</div>
+                <div class="num">86</div><div class="symbol">Rn</div><div class="mass">(222)</div>
             </div>
             <!-- Период 7 -->
             <div class="element s-element" data-num="87" data-name="Франций" data-sym="Fr" data-shells="2,8,18,32,18,8,1" data-density="1.8" data-melt="27°C" data-boil="677°C" style="grid-column: 1; grid-row: 7;">
-                <div class="num">87</div><div class="symbol">Fr</div><div class="name">Франций</div><div class="mass">(223)</div>
+                <div class="num">87</div><div class="symbol">Fr</div><div class="mass">(223)</div>
             </div>
             <div class="element s-element" data-num="88" data-name="Радий" data-sym="Ra" data-shells="2,8,18,32,18,8,2" data-density="5.5" data-melt="700°C" data-boil="1737°C" style="grid-column: 2; grid-row: 7;">
-                <div class="num">88</div><div class="symbol">Ra</div><div class="name">Радий</div><div class="mass">(226)</div>
+                <div class="num">88</div><div class="symbol">Ra</div><div class="mass">(226)</div>
             </div>
             <!-- Заглушка Актиноидов -->
             <div class="element f-element" data-num="89-103" data-name="Актиноиды" data-sym="Ac-Lr" data-shells="" data-density="" data-melt="" data-boil="" style="grid-column: 3; grid-row: 7; pointer-events: none;">
-                <div class="num">89-103</div><div class="symbol">Ac-Lr</div><div class="name">Актин.</div><div class="mass"></div>
+                <div class="num">89-103</div><div class="symbol">Ac-Lr</div><div class="mass"></div>
             </div>
             <div class="element d-element" data-num="104" data-name="Резерфордий" data-sym="Rf" data-shells="2,8,18,32,32,10,2" data-density="23.2" data-melt="2100°C" data-boil="5500°C" style="grid-column: 4; grid-row: 7;">
-                <div class="num">104</div><div class="symbol">Rf</div><div class="name">Резерфордий</div><div class="mass">(267)</div>
+                <div class="num">104</div><div class="symbol">Rf</div><div class="mass">(267)</div>
             </div>
-            <div class="element d-element" data-num="105" data-name="Дубний" data-sym="Db" data-shells="2,8,18,32,32,11,2" data-density="29.3" data-melt="-1°C" data-boil="-1°C" style="grid-column: 5; grid-row: 7;">
-                <div class="num">105</div><div class="symbol">Db</div><div class="name">Дубний</div><div class="mass">(268)</div>
+            <div class="element d-element" data-num="105" data-name="Дубний" data-sym="Db" data-shells="2,8,18,32,32,11,2" data-density="29.3" data-melt="—" data-boil="—" style="grid-column: 5; grid-row: 7;">
+                <div class="num">105</div><div class="symbol">Db</div><div class="mass">(268)</div>
             </div>
-            <div class="element d-element" data-num="106" data-name="Сиборгий" data-sym="Sg" data-shells="2,8,18,32,32,12,2" data-density="35.0" data-melt="-1°C" data-boil="-1°C" style="grid-column: 6; grid-row: 7;">
-                <div class="num">106</div><div class="symbol">Sg</div><div class="name">Сиборгий</div><div class="mass">(269)</div>
+            <div class="element d-element" data-num="106" data-name="Сиборгий" data-sym="Sg" data-shells="2,8,18,32,32,12,2" data-density="35.0" data-melt="—" data-boil="—" style="grid-column: 6; grid-row: 7;">
+                <div class="num">106</div><div class="symbol">Sg</div><div class="mass">(269)</div>
             </div>
-            <div class="element d-element" data-num="107" data-name="Борий" data-sym="Bh" data-shells="2,8,18,32,32,13,2" data-density="37.0" data-melt="-1°C" data-boil="-1°C" style="grid-column: 7; grid-row: 7;">
-                <div class="num">107</div><div class="symbol">Bh</div><div class="name">Борий</div><div class="mass">(270)</div>
+            <div class="element d-element" data-num="107" data-name="Борий" data-sym="Bh" data-shells="2,8,18,32,32,13,2" data-density="37.0" data-melt="—" data-boil="—" style="grid-column: 7; grid-row: 7;">
+                <div class="num">107</div><div class="symbol">Bh</div><div class="mass">(270)</div>
             </div>
-            <div class="element d-element" data-num="108" data-name="Хассий" data-sym="Hs" data-shells="2,8,18,32,32,14,2" data-density="41.0" data-melt="-1°C" data-boil="-1°C" style="grid-column: 8; grid-row: 7;">
-                <div class="num">108</div><div class="symbol">Hs</div><div class="name">Хассий</div><div class="mass">(269)</div>
+            <div class="element d-element" data-num="108" data-name="Хассий" data-sym="Hs" data-shells="2,8,18,32,32,14,2" data-density="41.0" data-melt="—" data-boil="—" style="grid-column: 8; grid-row: 7;">
+                <div class="num">108</div><div class="symbol">Hs</div><div class="mass">(269)</div>
             </div>
-            <div class="element d-element" data-num="109" data-name="Мейтнерий" data-sym="Mt" data-shells="2,8,18,32,32,15,2" data-density="37.4" data-melt="-1°C" data-boil="-1°C" style="grid-column: 9; grid-row: 7;">
-                <div class="num">109</div><div class="symbol">Mt</div><div class="name">Мейтнерий</div><div class="mass">(278)</div>
+            <div class="element d-element" data-num="109" data-name="Мейтнерий" data-sym="Mt" data-shells="2,8,18,32,32,15,2" data-density="37.4" data-melt="—" data-boil="—" style="grid-column: 9; grid-row: 7;">
+                <div class="num">109</div><div class="symbol">Mt</div><div class="mass">(278)</div>
             </div>
-            <div class="element d-element" data-num="110" data-name="Дармштадтий" data-sym="Ds" data-shells="2,8,18,32,32,17,1" data-density="34.8" data-melt="-1°C" data-boil="-1°C" style="grid-column: 10; grid-row: 7;">
-                <div class="num">110</div><div class="symbol">Ds</div><div class="name">Дармштадтий</div><div class="mass">(281)</div>
+            <div class="element d-element" data-num="110" data-name="Дармштадтий" data-sym="Ds" data-shells="2,8,18,32,32,17,1" data-density="34.8" data-melt="—" data-boil="—" style="grid-column: 10; grid-row: 7;">
+                <div class="num">110</div><div class="symbol">Ds</div><div class="mass">(281)</div>
             </div>
-            <div class="element d-element" data-num="111" data-name="Рентгений" data-sym="Rg" data-shells="2,8,18,32,32,18,1" data-density="28.7" data-melt="-1°C" data-boil="-1°C" style="grid-column: 11; grid-row: 7;">
-                <div class="num">111</div><div class="symbol">Rg</div><div class="name">Рентгений</div><div class="mass">(282)</div>
+            <div class="element d-element" data-num="111" data-name="Рентгений" data-sym="Rg" data-shells="2,8,18,32,32,18,1" data-density="28.7" data-melt="—" data-boil="—" style="grid-column: 11; grid-row: 7;">
+                <div class="num">111</div><div class="symbol">Rg</div><div class="mass">(282)</div>
             </div>
-            <div class="element d-element" data-num="112" data-name="Коперниций" data-sym="Cn" data-shells="2,8,18,32,32,18,2" data-density="23.7" data-melt="-1°C" data-boil="67°C" style="grid-column: 12; grid-row: 7;">
-                <div class="num">112</div><div class="symbol">Cn</div><div class="name">Коперниций</div><div class="mass">(285)</div>
+            <div class="element d-element" data-num="112" data-name="Коперниций" data-sym="Cn" data-shells="2,8,18,32,32,18,2" data-density="23.7" data-melt="—" data-boil="67°C" style="grid-column: 12; grid-row: 7;">
+                <div class="num">112</div><div class="symbol">Cn</div><div class="mass">(285)</div>
             </div>
             <div class="element post-transition p-element" data-num="113" data-name="Нихоний" data-sym="Nh" data-shells="2,8,18,32,32,18,3" data-density="16.0" data-melt="425°C" data-boil="1127°C" style="grid-column: 13; grid-row: 7;">
-                <div class="num">113</div><div class="symbol">Nh</div><div class="name">Нихоний</div><div class="mass">(286)</div>
+                <div class="num">113</div><div class="symbol">Nh</div><div class="mass">(286)</div>
             </div>
             <div class="element post-transition p-element" data-num="114" data-name="Флеровий" data-sym="Fl" data-shells="2,8,18,32,32,18,4" data-density="14.0" data-melt="67°C" data-boil="147°C" style="grid-column: 14; grid-row: 7;">
-                <div class="num">114</div><div class="symbol">Fl</div><div class="name">Флеровий</div><div class="mass">(289)</div>
+                <div class="num">114</div><div class="symbol">Fl</div><div class="mass">(289)</div>
             </div>
             <div class="element post-transition p-element" data-num="115" data-name="Московий" data-sym="Mc" data-shells="2,8,18,32,32,18,5" data-density="13.5" data-melt="400°C" data-boil="1100°C" style="grid-column: 15; grid-row: 7;">
-                <div class="num">115</div><div class="symbol">Mc</div><div class="name">Московий</div><div class="mass">(290)</div>
+                <div class="num">115</div><div class="symbol">Mc</div><div class="mass">(290)</div>
             </div>
             <div class="element post-transition p-element" data-num="116" data-name="Ливерморий" data-sym="Lv" data-shells="2,8,18,32,32,18,6" data-density="12.9" data-melt="435°C" data-boil="835°C" style="grid-column: 16; grid-row: 7;">
-                <div class="num">116</div><div class="symbol">Lv</div><div class="name">Ливерморий</div><div class="mass">(293)</div>
+                <div class="num">116</div><div class="symbol">Lv</div><div class="mass">(293)</div>
             </div>
             <div class="element halogen p-element" data-num="117" data-name="Теннессин" data-sym="Ts" data-shells="2,8,18,32,32,18,7" data-density="7.2" data-melt="450°C" data-boil="610°C" style="grid-column: 17; grid-row: 7;">
-                <div class="num">117</div><div class="symbol">Ts</div><div class="name">Теннессин</div><div class="mass">(294)</div>
+                <div class="num">117</div><div class="symbol">Ts</div><div class="mass">(294)</div>
             </div>
             <div class="element noble p-element" data-num="118" data-name="Оганесон" data-sym="Og" data-shells="2,8,18,32,32,18,8" data-density="5.0" data-melt="50°C" data-boil="80°C" style="grid-column: 18; grid-row: 7;">
-                <div class="num">118</div><div class="symbol">Og</div><div class="name">Оганесон</div><div class="mass">(294)</div>
+                <div class="num">118</div><div class="symbol">Og</div><div class="mass">(294)</div>
             </div>
             <!-- ВЫНЕСЕННЫЕ ЛАНТАНОИДЫ (Период 9 сетки) -->
             <div class="element f-element" data-num="57" data-name="Лантан" data-sym="La" data-shells="2,8,18,18,9,2" data-density="6.15" data-melt="920°C" data-boil="3464°C" style="grid-column: 3; grid-row: 9;">
-                <div class="num">57</div><div class="symbol">La</div><div class="name">Лантан</div><div class="mass">138.91</div>
+                <div class="num">57</div><div class="symbol">La</div><div class="mass">138.91</div>
             </div>
             <div class="element f-element" data-num="58" data-name="Церий" data-sym="Ce" data-shells="2,8,18,19,9,2" data-density="6.77" data-melt="798°C" data-boil="3424°C" style="grid-column: 4; grid-row: 9;">
-                <div class="num">58</div><div class="symbol">Ce</div><div class="name">Церий</div><div class="mass">140.12</div>
+                <div class="num">58</div><div class="symbol">Ce</div><div class="mass">140.12</div>
             </div>
             <div class="element f-element" data-num="59" data-name="Празеодим" data-sym="Pr" data-shells="2,8,18,21,8,2" data-density="6.77" data-melt="931°C" data-boil="3520°C" style="grid-column: 5; grid-row: 9;">
-                <div class="num">59</div><div class="symbol">Pr</div><div class="name">Празеодим</div><div class="mass">140.91</div>
+                <div class="num">59</div><div class="symbol">Pr</div><div class="mass">140.91</div>
             </div>
             <div class="element f-element" data-num="60" data-name="Неодим" data-sym="Nd" data-shells="2,8,18,22,8,2" data-density="7.01" data-melt="1021°C" data-boil="3074°C" style="grid-column: 6; grid-row: 9;">
-                <div class="num">60</div><div class="symbol">Nd</div><div class="name">Неодим</div><div class="mass">144.24</div>
+                <div class="num">60</div><div class="symbol">Nd</div><div class="mass">144.24</div>
             </div>
             <div class="element f-element" data-num="61" data-name="Прометий" data-sym="Pm" data-shells="2,8,18,23,8,2" data-density="7.26" data-melt="1042°C" data-boil="3000°C" style="grid-column: 7; grid-row: 9;">
-                <div class="num">61</div><div class="symbol">Pm</div><div class="name">Прометий</div><div class="mass">(145)</div>
+                <div class="num">61</div><div class="symbol">Pm</div><div class="mass">(145)</div>
             </div>
             <div class="element f-element" data-num="62" data-name="Самарий" data-sym="Sm" data-shells="2,8,18,24,8,2" data-density="7.52" data-melt="1074°C" data-boil="1794°C" style="grid-column: 8; grid-row: 9;">
-                <div class="num">62</div><div class="symbol">Sm</div><div class="name">Самарий</div><div class="mass">150.36</div>
+                <div class="num">62</div><div class="symbol">Sm</div><div class="mass">150.36</div>
             </div>
             <div class="element f-element" data-num="63" data-name="Европий" data-sym="Eu" data-shells="2,8,18,25,8,2" data-density="5.24" data-melt="822°C" data-boil="1529°C" style="grid-column: 9; grid-row: 9;">
-                <div class="num">63</div><div class="symbol">Eu</div><div class="name">Европий</div><div class="mass">151.96</div>
+                <div class="num">63</div><div class="symbol">Eu</div><div class="mass">151.96</div>
             </div>
             <div class="element f-element" data-num="64" data-name="Гадолиний" data-sym="Gd" data-shells="2,8,18,25,9,2" data-density="7.90" data-melt="1313°C" data-boil="3273°C" style="grid-column: 10; grid-row: 9;">
-                <div class="num">64</div><div class="symbol">Gd</div><div class="name">Гадолиний</div><div class="mass">157.25</div>
+                <div class="num">64</div><div class="symbol">Gd</div><div class="mass">157.25</div>
             </div>
             <div class="element f-element" data-num="65" data-name="Тербий" data-sym="Tb" data-shells="2,8,18,27,8,2" data-density="8.23" data-melt="1356°C" data-boil="3230°C" style="grid-column: 11; grid-row: 9;">
-                <div class="num">65</div><div class="symbol">Tb</div><div class="name">Тербий</div><div class="mass">158.93</div>
+                <div class="num">65</div><div class="symbol">Tb</div><div class="mass">158.93</div>
             </div>
             <div class="element f-element" data-num="66" data-name="Диспрозий" data-sym="Dy" data-shells="2,8,18,28,8,2" data-density="8.55" data-melt="1412°C" data-boil="2567°C" style="grid-column: 12; grid-row: 9;">
-                <div class="num">66</div><div class="symbol">Dy</div><div class="name">Диспрозий</div><div class="mass">162.50</div>
+                <div class="num">66</div><div class="symbol">Dy</div><div class="mass">162.50</div>
             </div>
             <div class="element f-element" data-num="67" data-name="Гольмий" data-sym="Ho" data-shells="2,8,18,29,8,2" data-density="8.80" data-melt="1474°C" data-boil="2700°C" style="grid-column: 13; grid-row: 9;">
-                <div class="num">67</div><div class="symbol">Ho</div><div class="name">Гольмий</div><div class="mass">164.93</div>
+                <div class="num">67</div><div class="symbol">Ho</div><div class="mass">164.93</div>
             </div>
             <div class="element f-element" data-num="68" data-name="Эрбий" data-sym="Er" data-shells="2,8,18,30,8,2" data-density="9.07" data-melt="1529°C" data-boil="2868°C" style="grid-column: 14; grid-row: 9;">
-                <div class="num">68</div><div class="symbol">Er</div><div class="name">Эрбий</div><div class="mass">167.26</div>
+                <div class="num">68</div><div class="symbol">Er</div><div class="mass">167.26</div>
             </div>
             <div class="element f-element" data-num="69" data-name="Тулий" data-sym="Tm" data-shells="2,8,18,31,8,2" data-density="9.32" data-melt="1545°C" data-boil="1950°C" style="grid-column: 15; grid-row: 9;">
-                <div class="num">69</div><div class="symbol">Tm</div><div class="name">Тулий</div><div class="mass">168.93</div>
+                <div class="num">69</div><div class="symbol">Tm</div><div class="mass">168.93</div>
             </div>
             <div class="element f-element" data-num="70" data-name="Иттербий" data-sym="Yb" data-shells="2,8,18,32,8,2" data-density="6.90" data-melt="819°C" data-boil="1196°C" style="grid-column: 16; grid-row: 9;">
-                <div class="num">70</div><div class="symbol">Yb</div><div class="name">Иттербий</div><div class="mass">173.05</div>
+                <div class="num">70</div><div class="symbol">Yb</div><div class="mass">173.05</div>
             </div>
             <div class="element f-element" data-num="71" data-name="Лютеций" data-sym="Lu" data-shells="2,8,18,32,9,2" data-density="9.84" data-melt="1663°C" data-boil="3402°C" style="grid-column: 17; grid-row: 9;">
-                <div class="num">71</div><div class="symbol">Lu</div><div class="name">Лютеций</div><div class="mass">174.97</div>
+                <div class="num">71</div><div class="symbol">Lu</div><div class="mass">174.97</div>
             </div>
             <!-- ВЫНЕСЕННЫЕ АКТИНОИДЫ (Период 10 сетки) -->
             <div class="element f-element" data-num="89" data-name="Актиний" data-sym="Ac" data-shells="2,8,18,32,18,9,2" data-density="10.07" data-melt="1050°C" data-boil="3198°C" style="grid-column: 3; grid-row: 10;">
-                <div class="num">89</div><div class="symbol">Ac</div><div class="name">Актиний</div><div class="mass">(227)</div>
+                <div class="num">89</div><div class="symbol">Ac</div><div class="mass">(227)</div>
             </div>
             <div class="element f-element" data-num="90" data-name="Торий" data-sym="Th" data-shells="2,8,18,32,18,10,2" data-density="11.72" data-melt="1750°C" data-boil="4788°C" style="grid-column: 4; grid-row: 10;">
-                <div class="num">90</div><div class="symbol">Th</div><div class="name">Торий</div><div class="mass">232.04</div>
+                <div class="num">90</div><div class="symbol">Th</div><div class="mass">232.04</div>
             </div>
             <div class="element f-element" data-num="91" data-name="Протактиний" data-sym="Pa" data-shells="2,8,18,32,20,9,2" data-density="15.37" data-melt="1568°C" data-boil="4000°C" style="grid-column: 5; grid-row: 10;">
-                <div class="num">91</div><div class="symbol">Pa</div><div class="name">Протакт.</div><div class="mass">231.04</div>
+                <div class="num">91</div><div class="symbol">Pa</div><div class="mass">231.04</div>
             </div>
             <div class="element f-element" data-num="92" data-name="Уран" data-sym="U" data-shells="2,8,18,32,21,9,2" data-density="18.95" data-melt="1132°C" data-boil="4131°C" style="grid-column: 6; grid-row: 10;">
-                <div class="num">92</div><div class="symbol">U</div><div class="name">Уран</div><div class="mass">238.03</div>
+                <div class="num">92</div><div class="symbol">U</div><div class="mass">238.03</div>
             </div>
             <div class="element f-element" data-num="93" data-name="Нептуний" data-sym="Np" data-shells="2,8,18,32,22,9,2" data-density="20.25" data-melt="644°C" data-boil="3902°C" style="grid-column: 7; grid-row: 10;">
-                <div class="num">93</div><div class="symbol">Np</div><div class="name">Нептуний</div><div class="mass">(237)</div>
+                <div class="num">93</div><div class="symbol">Np</div><div class="mass">(237)</div>
             </div>
             <div class="element f-element" data-num="94" data-name="Плутоний" data-sym="Pu" data-shells="2,8,18,32,24,8,2" data-density="19.84" data-melt="640°C" data-boil="3228°C" style="grid-column: 8; grid-row: 10;">
-                <div class="num">94</div><div class="symbol">Pu</div><div class="name">Плутоний</div><div class="mass">(244)</div>
+                <div class="num">94</div><div class="symbol">Pu</div><div class="mass">(244)</div>
             </div>
             <div class="element f-element" data-num="95" data-name="Америций" data-sym="Am" data-shells="2,8,18,32,25,8,2" data-density="13.67" data-melt="1176°C" data-boil="2607°C" style="grid-column: 9; grid-row: 10;">
-                <div class="num">95</div><div class="symbol">Am</div><div class="name">Америций</div><div class="mass">(243)</div>
+                <div class="num">95</div><div class="symbol">Am</div><div class="mass">(243)</div>
             </div>
             <div class="element f-element" data-num="96" data-name="Кюрий" data-sym="Cm" data-shells="2,8,18,32,25,9,2" data-density="13.51" data-melt="1340°C" data-boil="3110°C" style="grid-column: 10; grid-row: 10;">
-                <div class="num">96</div><div class="symbol">Cm</div><div class="name">Кюрий</div><div class="mass">(247)</div>
+                <div class="num">96</div><div class="symbol">Cm</div><div class="mass">(247)</div>
             </div>
             <div class="element f-element" data-num="97" data-name="Берклий" data-sym="Bk" data-shells="2,8,18,32,27,8,2" data-density="14.78" data-melt="986°C" data-boil="2627°C" style="grid-column: 11; grid-row: 10;">
-                <div class="num">97</div><div class="symbol">Bk</div><div class="name">Берклий</div><div class="mass">(247)</div>
+                <div class="num">97</div><div class="symbol">Bk</div><div class="mass">(247)</div>
             </div>
             <div class="element f-element" data-num="98" data-name="Калифорний" data-sym="Cf" data-shells="2,8,18,32,28,8,2" data-density="15.10" data-melt="900°C" data-boil="1470°C" style="grid-column: 12; grid-row: 10;">
-                <div class="num">98</div><div class="symbol">Cf</div><div class="name">Калифорн.</div><div class="mass">(251)</div>
+                <div class="num">98</div><div class="symbol">Cf</div><div class="mass">(251)</div>
             </div>
             <div class="element f-element" data-num="99" data-name="Эйнштейний" data-sym="Es" data-shells="2,8,18,32,29,8,2" data-density="8.84" data-melt="860°C" data-boil="996°C" style="grid-column: 13; grid-row: 10;">
-                <div class="num">99</div><div class="symbol">Es</div><div class="name">Эйнштейн.</div><div class="mass">(252)</div>
+                <div class="num">99</div><div class="symbol">Es</div><div class="mass">(252)</div>
             </div>
-            <div class="element f-element" data-num="100" data-name="Фермий" data-sym="Fm" data-shells="2,8,18,32,30,8,2" data-density="9.7" data-melt="1527°C" data-boil="-1°C" style="grid-column: 14; grid-row: 10;">
-                <div class="num">100</div><div class="symbol">Fm</div><div class="name">Фермий</div><div class="mass">(257)</div>
+            <div class="element f-element" data-num="100" data-name="Фермий" data-sym="Fm" data-shells="2,8,18,32,30,8,2" data-density="9.7" data-melt="1527°C" data-boil="—" style="grid-column: 14; grid-row: 10;">
+                <div class="num">100</div><div class="symbol">Fm</div><div class="mass">(257)</div>
             </div>
-            <div class="element f-element" data-num="101" data-name="Менделевий" data-sym="Md" data-shells="2,8,18,32,31,8,2" data-density="10.3" data-melt="827°C" data-boil="-1°C" style="grid-column: 15; grid-row: 10;">
-                <div class="num">101</div><div class="symbol">Md</div><div class="name">Менделев.</div><div class="mass">(258)</div>
+            <div class="element f-element" data-num="101" data-name="Менделевий" data-sym="Md" data-shells="2,8,18,32,31,8,2" data-density="10.3" data-melt="827°C" data-boil="—" style="grid-column: 15; grid-row: 10;">
+                <div class="num">101</div><div class="symbol">Md</div><div class="mass">(258)</div>
             </div>
-            <div class="element f-element" data-num="102" data-name="Нвоболий" data-sym="No" data-shells="2,8,18,32,32,8,2" data-density="9.9" data-melt="827°C" data-boil="-1°C" style="grid-column: 16; grid-row: 10;">
-                <div class="num">102</div><div class="symbol">No</div><div class="name">Нобелий</div><div class="mass">(259)</div>
+            <div class="element f-element" data-num="102" data-name="Нобелий" data-sym="No" data-shells="2,8,18,32,32,8,2" data-density="9.9" data-melt="827°C" data-boil="—" style="grid-column: 16; grid-row: 10;">
+                <div class="num">102</div><div class="symbol">No</div><div class="mass">(259)</div>
             </div>
-            <div class="element f-element" data-num="103" data-name="Лоуренсий" data-sym="Lr" data-shells="2,8,18,32,32,8,3" data-density="15.6" data-melt="1627°C" data-boil="-1°C" style="grid-column: 17; grid-row: 10;">
-                <div class="num">103</div><div class="symbol">Lr</div><div class="name">Лоуренс.</div><div class="mass">(262)</div>
+            <div class="element f-element" data-num="103" data-name="Лоуренсий" data-sym="Lr" data-shells="2,8,18,32,32,8,3" data-density="15.6" data-melt="1627°C" data-boil="—" style="grid-column: 17; grid-row: 10;">
+                <div class="num">103</div><div class="symbol">Lr</div><div class="mass">(262)</div>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно по клику с кольцами и электронами -->
+    <!-- Интерактивный оверлей карточки с 3D-вращением -->
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal-card" id="modal-card">
             <div class="num" id="modal-num"></div>
@@ -532,12 +546,12 @@
         const modalCard = document.getElementById('modal-card');
         const ringsContainer = document.getElementById('rings-container');
 
-        // Живой поиск элементов (без затемнения фона страницы, приглушает прозрачность)
+        // Логика живого поиска элементов (без жесткого блэкаута)
         searchInput.addEventListener('input', () => {
             const val = searchInput.value.toLowerCase().trim();
             elements.forEach(el => {
-                const name = el.querySelector('.name')?.textContent.toLowerCase() || '';
-                const sym = el.querySelector('.symbol')?.textContent.toLowerCase() || '';
+                const name = el.getAttribute('data-name')?.toLowerCase() || '';
+                const sym = el.getAttribute('data-sym')?.toLowerCase() || '';
                 const num = el.getAttribute('data-num') || '';
                 
                 if (name.includes(val) || sym.includes(val) || num === val) {
@@ -548,28 +562,28 @@
             });
         });
 
-        // СБРОС ПОИСКА ПО ДВОЙНОМУ КЛИКУ
+        // СБРОС ФИЛЬТРА ПО ДВОЙНОМУ КЛИКУ
         searchInput.addEventListener('dblclick', () => {
             searchInput.value = '';
             elements.forEach(el => el.classList.remove('fade-out'));
         });
 
-        // Открытие карточки и генерация колец по клику
+        // Открытие карточки и генерация 3D-орбит вокруг своей оси по клику
         elements.forEach(el => {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
-                // Извлекаем цвет рамки текущего семейства
+                // Извлекаем цвет рамки текущего семейства элементов
                 const currentColor = window.getComputedStyle(el).color;
                 modalCard.style.color = currentColor;
 
-                // Заполняем данные карточки
+                // Наполняем карточку текстовыми данными
                 document.getElementById('modal-num').textContent = el.getAttribute('data-num');
                 document.getElementById('modal-symbol').textContent = el.getAttribute('data-sym');
-                document.getElementById('modal-name').textContent = el.querySelector('.name').textContent;
+                document.getElementById('modal-name').textContent = el.getAttribute('data-name');
                 document.getElementById('modal-mass').textContent = el.querySelector('.mass').textContent;
 
-                // Дополнительная информация
+                // Дополнительные параметры вещества
                 const d = el.getAttribute('data-density');
                 const m = el.getAttribute('data-melt');
                 const b = el.getAttribute('data-boil');
@@ -578,7 +592,7 @@
                 document.getElementById('modal-melt').textContent = m || '—';
                 document.getElementById('modal-boil').textContent = b || '—';
 
-                // Вертикальный список электронов
+                // Вертикальный список электронных оболочек справа
                 const shellsStr = el.getAttribute('data-shells');
                 const shellsVertical = document.getElementById('modal-shells');
                 shellsVertical.innerHTML = '';
@@ -587,15 +601,15 @@
                 if (shellsStr) {
                     const shells = shellsStr.split(',').map(Number);
                     
-                    // Вывод цифр справа
+                    // Выводим текстовые цифры
                     shells.forEach(num => {
                         const div = document.createElement('div');
                         div.textContent = num;
                         shellsVertical.appendChild(div);
                     });
 
-                    // Генерация интерактивных колец с электронами (Картинка 3)
-                    const baseRadius = 45; 
+                    // Генерация 3D-орбит, вращающихся по своей оси (Картинка 3)
+                    const baseRadius = 40; 
                     const step = 20;       
 
                     shells.forEach((electronCount, ringIndex) => {
@@ -606,17 +620,17 @@
                         orbit.classList.add('modal-orbit');
                         orbit.style.width = `${radius * 2}px`;
                         orbit.style.height = `${radius * 2}px`;
-                        // Разнонаправленное вращение орбит для динамики
-                        orbit.style.animationDuration = `${6 + ringIndex * 4}s`;
-                        orbit.style.animationDirection = ringIndex % 2 === 0 ? 'normal' : 'reverse';
                         
-                        // Равномерно распределяем электроны-точки по кольцу
+                        // Динамическая скорость вращения вокруг своей оси для каждого слоя
+                        orbit.style.animationDuration = `${5 + ringIndex * 3}s`;
+                        
+                        // Равномерно распределяем электроны по окружности кольца
                         for (let i = 0; i < electronCount; i++) {
                             const angle = (i * 2 * Math.PI) / electronCount;
                             const electron = document.createElement('div');
                             electron.classList.add('modal-electron');
                             
-                            // Позиционируем точку на окружности орбит
+                            // Вычисляем координаты точек на плоскости кольца
                             electron.style.left = `${radius + radius * Math.cos(angle)}px`;
                             electron.style.top = `${radius + radius * Math.sin(angle)}px`;
                             
@@ -626,12 +640,12 @@
                     });
                 }
 
-                // Показываем оверлей
+                // Открываем модальное окно элементов
                 modalOverlay.style.display = 'flex';
             });
         });
 
-        // Закрытие карточки при клике на любое свободное пространство фона
+        // Закрытие карточки при клике на любое место оверлея
         modalOverlay.addEventListener('click', () => {
             modalOverlay.style.display = 'none';
             ringsContainer.innerHTML = '';
@@ -641,7 +655,7 @@
             e.stopPropagation();
         });
 
-        // Простой фоновый Canvas-эффект летящих зеленых частиц
+        // Фоновый простейший рендер Canvas-эффекта зеленого тумана/частиц
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
         let w = canvas.width = window.innerWidth;
