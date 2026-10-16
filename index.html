@@ -6,141 +6,83 @@
     <title>Периодическая система элементов Менделеева</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
         body {
             font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #060709; color: #fff; height: 100vh;
             display: flex; flex-direction: column; justify-content: flex-start;
-            align-items: center; overflow: hidden; padding: 5px; position: relative;
-            -webkit-font-smoothing: antialiased;
+            align-items: center; overflow: hidden; padding: 4px; position: relative;
         }
         #particles-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        
         h1 {
-            font-size: 0.95rem; margin-bottom: 3px; font-weight: 700; letter-spacing: 2px;
-            color: #a0aec0; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 180, 98, 0.3); z-index: 10;
-            text-align: center; line-height: 1.1;
+            font-size: 0.9rem; margin-bottom: 2px; font-weight: 700; letter-spacing: 1px;
+            color: #a0aec0; text-transform: uppercase; z-index: 10; text-align: center;
         }
-        .search-container { z-index: 10; margin-bottom: 4px; width: 100%; max-width: 300px; position: relative; }
+        .search-container { z-index: 10; margin-bottom: 4px; width: 100%; max-width: 260px; }
         .search-input {
-            width: 100%; padding: 6px 12px; background: rgba(22, 23, 26, 0.9);
-            border: 2px solid #2d3748; border-radius: 6px; color: #fff; font-size: 0.85rem;
-            outline: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center;
-            font-family: inherit; font-weight: 600;
+            width: 100%; padding: 5px 10px; background: rgba(22, 23, 26, 0.9);
+            border: 2px solid #2d3748; border-radius: 6px; color: #fff; font-size: 0.8rem;
+            outline: none; transition: all 0.3s; text-align: center; font-weight: 600;
         }
-        .search-input:focus { border-color: #00b462; box-shadow: 0 0 15px rgba(0, 180, 98, 0.4); }
-        
+        .search-input:focus { border-color: #00b462; box-shadow: 0 0 10px rgba(0, 180, 98, 0.4); }
         .table-wrapper {
-            width: 100%; height: calc(100vh - 65px); z-index: 2; display: flex; justify-content: center; align-items: center; overflow: hidden;
+            width: 100%; height: calc(100vh - 55px); z-index: 2; display: flex; justify-content: center; align-items: center; overflow: hidden;
         }
-        
-        /* Идеальная адаптивная сетка под горизонтальный экран телефона без скролла */
         .periodic-table {
-            display: grid; 
-            grid-template-columns: repeat(18, minmax(0, 1fr));
-            grid-template-rows: repeat(10, minmax(0, 1fr)); 
+            display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); grid-template-rows: repeat(10, minmax(0, 1fr)); 
             gap: 2px; width: 100%; height: 100%; max-width: 100vw; max-height: 100vh;
             background: rgba(10, 12, 18, 0.9); backdrop-filter: blur(10px);
-            padding: 6px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.95);
-            border: 1px solid rgba(255, 255, 255, 0.02); position: relative;
+            padding: 4px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.02);
         }
-        
         .element {
-            background: #16171a; border: 1px solid currentColor; border-radius: 3px;
-            padding: 1px 2px; display: flex; flex-direction: column; justify-content: space-between;
-            align-items: center; cursor: pointer; position: relative; user-select: none;
-            transition: transform 0.2s ease, box-shadow 0.2s, opacity 0.3s; height: 100%; width: 100%;
+            background: #16171a; border: 1px solid currentColor; border-radius: 2px;
+            padding: 1px; display: flex; flex-direction: column; justify-content: space-between;
+            align-items: center; cursor: pointer; position: relative; user-select: none; transition: transform 0.2s, opacity 0.3s;
         }
-        
-        .element.fade-out { opacity: 0.15; filter: grayscale(0.5); }
-        .element:hover { transform: scale(1.15); z-index: 100; box-shadow: 0 0 10px currentColor; background: #202226; }
-        
-        /* Автоматическое масштабирование шрифтов под высоту экрана */
-        .element .num { font-size: 0.55vw; align-self: flex-start; font-weight: 700; color: rgba(255, 255, 255, 0.4); line-height: 1; }
-        .element .symbol { font-size: 1.1vw; font-weight: 800; text-align: center; line-height: 1; margin-top: -1px; }
-        .element .name { font-size: 0.48vw; font-weight: 900; color: #fff; text-align: center; text-transform: uppercase; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; }
-        .element .mass { font-size: 0.5vw; text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.65); font-weight: 700; }
-
-        .s-element { color: #b6be5d; } .p-element { color: #00b462; }
-        .d-element { color: #ff5c5c; } .f-element { color: #b380a0; } .unknown-element { color: #a0aec0; }
+        .element.fade-out { opacity: 0.12; filter: grayscale(0.7); }
+        .element:hover { transform: scale(1.15); z-index: 100; box-shadow: 0 0 8px currentColor; background: #202226; }
+        .element .num { font-size: 0.55vw; align-self: flex-start; font-weight: 700; color: rgba(255, 255, 255, 0.35); line-height: 1; }
+        .element .symbol { font-size: 1.1vw; font-weight: 800; text-align: center; line-height: 1; }
+        .element .name { font-size: 0.45vw; font-weight: 900; color: #fff; text-align: center; text-transform: uppercase; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; }
+        .element .mass { font-size: 0.48vw; text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.5); }
+        .s-element { color: #b6be5d; } .p-element { color: #00b462; } .d-element { color: #ff5c5c; } .f-element { color: #b380a0; } .unknown-element { color: #a0aec0; }
         
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); display: none; justify-content: center;
-            align-items: center; z-index: 99999; backdrop-filter: blur(6px);
+            background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 99999; backdrop-filter: blur(4px);
         }
-        
         .modal-card {
-            background: #140d12; border: 3px solid #fff; border-radius: 12px;
-            width: 280px; height: 280px; padding: 15px; display: flex;
-            flex-direction: column; justify-content: space-between; position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 25px currentColor;
-            color: #fff; transition: border-color 0.3s; overflow: hidden;
+            background: #140d12; border: 3px solid #fff; border-radius: 12px; width: 270px; height: 270px; padding: 12px;
+            display: flex; flex-direction: column; justify-content: space-between; position: relative; color: #fff; overflow: hidden;
         }
-
-        .modal-card .num { font-size: 1.1rem; font-weight: 700; align-self: flex-start; color: rgba(255,255,255,0.6); }
-        .modal-card .symbol { font-size: 3.2rem; font-weight: 800; align-self: flex-start; line-height: 0.9; }
-        .modal-card .name { font-size: 1.3rem; font-weight: 800; align-self: flex-start; margin-top: 2px; }
-        .modal-card .mass { font-size: 1.05rem; font-weight: 700; align-self: flex-start; margin-top: 5px; border-bottom: 2px solid rgba(255,255,255,0.25); width: 55%; padding-bottom: 2px; }
-        
-        .modal-card .extra-info { display: flex; flex-direction: column; gap: 3px; font-size: 0.75rem; font-weight: 700; margin-top: 5px; z-index: 5; }
+        .modal-card .num { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.5); }
+        .modal-card .symbol { font-size: 3rem; font-weight: 800; line-height: 0.85; }
+        .modal-card .name { font-size: 1.2rem; font-weight: 800; margin-top: 2px; }
+        .modal-card .mass { font-size: 1rem; font-weight: 700; border-bottom: 2px solid rgba(255,255,255,0.2); width: 50%; padding-bottom: 2px; }
+        .modal-card .extra-info { display: flex; flex-direction: column; gap: 2px; font-size: 0.75rem; font-weight: 700; z-index: 5; }
         .modal-card .extra-info div { display: flex; gap: 6px; }
         .modal-card .extra-info span { color: rgba(255,255,255,0.4); }
-
-        .modal-card .shells-vertical {
-            position: absolute; right: 15px; top: 15px; display: flex;
-            flex-direction: column; gap: 4px; font-size: 1.1rem; font-weight: 800;
-            text-align: right; z-index: 10;
-        }
-
-        .modal-card .rings-container {
-            position: absolute; top: 50%; left: 50%; width: 90%; height: 90%;
-            transform: translate(-50%, -50%); pointer-events: none; z-index: 1;
-        }
-        
-        .modal-orbit {
-            position: absolute; top: 50%; left: 50%; 
-            border: 1.5px solid rgba(255,255,255,0.12); border-radius: 50%;
-            transform: translate(-50%, -50%); animation: spinRing linear infinite;
-        }
-        
-        .modal-electron {
-            position: absolute; width: 5px; height: 5px; background: #fff;
-            border-radius: 50%; box-shadow: 0 0 6px #fff, 0 0 10px currentColor;
-            transform: translate(-50%, -50%);
-        }
-
-        @keyframes spinRing {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
+        .modal-card .shells-vertical { position: absolute; right: 15px; top: 15px; display: flex; flex-direction: column; gap: 3px; font-size: 1rem; font-weight: 800; text-align: right; z-index: 10; }
+        .modal-card .rings-container { position: absolute; top: 50%; left: 50%; width: 90%; height: 90%; transform: translate(-50%, -50%); pointer-events: none; z-index: 1; }
+        .modal-orbit { position: absolute; top: 50%; left: 50%; border: 1.5px solid rgba(255,255,255,0.1); border-radius: 50%; transform: translate(-50%, -50%); animation: spinRing linear infinite; }
+        .modal-electron { position: absolute; width: 4px; height: 4px; background: #fff; border-radius: 50%; box-shadow: 0 0 6px #fff, 0 0 10px currentColor; transform: translate(-50%, -50%); }
+        @keyframes spinRing { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
     </style>
 </head>
 <body>
     <canvas id="particles-canvas"></canvas>
     <h1>Периодическая система Менделеева</h1>
-    
-    <div class="search-container">
-        <input type="text" id="search" class="search-input" placeholder="Поиск элементов...">
-    </div>
-
-    <div class="table-wrapper">
-        <div class="periodic-table" id="table-container"></div>
-    </div>
+    <div class="search-container"><input type="text" id="search" class="search-input" placeholder="Поиск элементов..."></div>
+    <div class="table-wrapper"><div class="periodic-table" id="table-container"></div></div>
 
     <div class="modal-overlay" id="modal">
         <div class="modal-card" id="modal-card">
-            <div class="num" id="m-num"></div>
-            <div class="symbol" id="m-sym"></div>
-            <div class="name" id="m-name"></div>
-            <div class="mass" id="m-mass"></div>
+            <div class="num" id="m-num"></div><div class="symbol" id="m-sym"></div><div class="name" id="m-name"></div><div class="mass" id="m-mass"></div>
             <div class="extra-info">
                 <div><span>Плотность:</span><span id="m-density" style="color:#fff"></span></div>
                 <div><span>Плавление:</span><span id="m-melt" style="color:#fff"></span></div>
                 <div><span>Кипение:</span><span id="m-boil" style="color:#fff"></span></div>
             </div>
-            <div class="shells-vertical" id="m-shells"></div>
-            <div class="rings-container" id="m-rings"></div>
+            <div class="shells-vertical" id="m-shells"></div><div class="rings-container" id="m-rings"></div>
         </div>
     </div>
 
@@ -186,46 +128,46 @@
             {num:38, sym:"Sr", name:"Стронций", mass:"87.62", type:"s", col:2, row:5, shells:[2,8,18,8,2], density:"2.64", melt:"777°C", boil:"1382°C"},
             {num:39, sym:"Y", name:"Иттрий", mass:"88.906", type:"d", col:3, row:5, shells:[2,8,18,9,2], density:"4.472", melt:"1526°C", boil:"3336°C"},
             {num:40, sym:"Zr", name:"Цирконий", mass:"91.224", type:"d", col:4, row:5, shells:[2,8,18,10,2], density:"6.52", melt:"1855°C", boil:"4409°C"},
-            {num:41, sym:"Nb", name:"Ниобий", mass:"92.906", type:"d", col:5, row:5, shells:, density:"8.57", melt:"2477°C", boil:"4744°C"},
-            {num:42, sym:"Mo", name:"Молибден", mass:"95.95", type:"d", col:6, row:5, shells:, density:"10.28", melt:"2623°C", boil:"4639°C"},
-            {num:43, sym:"Tc", name:"Технеций", mass:"98", type:"d", col:7, row:5, shells:, density:"11.5", melt:"2157°C", boil:"4265°C"},
-            {num:44, sym:"Ru", name:"Рутений", mass:"101.07", type:"d", col:8, row:5, shells:, density:"12.45", melt:"2334°C", boil:"4150°C"},
-            {num:45, sym:"Rh", name:"Родий", mass:"102.91", type:"d", col:9, row:5, shells:, density:"12.41", melt:"1964°C", boil:"3695°C"},
-            {num:46, sym:"Pd", name:"Палладий", mass:"106.42", type:"d", col:10, row:5, shells:, density:"12.023", melt:"1555°C", boil:"2963°C"},
-            {num:47, sym:"Ag", name:"Серебро", mass:"107.87", type:"d", col:11, row:5, shells:, density:"10.49", melt:"962°C", boil:"2162°C"},
-            {num:48, sym:"Cd", name:"Кадмий", mass:"112.41", type:"d", col:12, row:5, shells:, density:"8.65", melt:"321°C", boil:"767°C"},
-            {num:49, sym:"In", name:"Индий", mass:"114.82", type:"p", col:13, row:5, shells:, density:"7.31", melt:"157°C", boil:"2072°C"},
-            {num:50, sym:"Sn", name:"Олово", mass:"118.71", type:"p", col:14, row:5, shells:, density:"7.287", melt:"232°C", boil:"2602°C"},
-            {num:51, sym:"Sb", name:"Сурьма", mass:"121.76", type:"p", col:15, row:5, shells:, density:"6.685", melt:"631°C", boil:"1587°C"},
-            {num:52, sym:"Te", name:"Теллур", mass:"127.60", type:"p", col:16, row:5, shells:, density:"6.24", melt:"450°C", boil:"988°C"},
-            {num:53, sym:"I", name:"Иод", mass:"126.90", type:"p", col:17, row:5, shells:, density:"4.93", melt:"114°C", boil:"184°C"},
-            {num:54, sym:"Xe", name:"Ксенон", mass:"131.29", type:"p", col:18, row:5, shells:, density:"0.00588", melt:"-112°C", boil:"-108°C"},
-            {num:55, sym:"Cs", name:"Цезий", mass:"132.91", type:"s", col:1, row:6, shells:, density:"1.93", melt:"28.4°C", boil:"671°C"},
-            {num:56, sym:"Ba", name:"Барий", mass:"137.33", type:"s", col:2, row:6, shells:, density:"3.51", melt:"727°C", boil:"1897°C"},
-            {num:57, sym:"La", name:"Лантан", mass:"138.91", type:"f", col:4, row:9, shells:, density:"6.16", melt:"920°C", boil:"3464°C"},
-            {num:58, sym:"Ce", name:"Церий", mass:"140.12", type:"f", col:5, row:9, shells:, density:"6.77", melt:"798°C", boil:"3443°C"},
-            {num:59, sym:"Pr", name:"Празеодим", mass:"140.91", type:"f", col:6, row:9, shells:, density:"6.77", melt:"931°C", boil:"3520°C"},
-            {num:60, sym:"Nd", name:"Неодим", mass:"144.24", type:"f", col:7, row:9, shells:, density:"7.01", melt:"1021°C", boil:"3074°C"},
-            {num:61, sym:"Pm", name:"Прометий", mass:"145", type:"f", col:8, row:9, shells:[2,8,18,23,8,2], density:"7.26", melt:"1042°C", boil:"3000°C"},
-            {num:62, sym:"Sm", name:"Самарий", mass:"150.36", type:"f", col:9, row:9, shells:[2,8,18,24,8,2], density:"7.52", melt:"1072°C", boil:"1794°C"},
-            {num:63, sym:"Eu", name:"Европий", mass:"151.96", type:"f", col:10, row:9, shells:[2,8,18,25,8,2], density:"5.24", melt:"822°C", boil:"1529°C"},
-            {num:64, sym:"Gd", name:"Гадолиний", mass:"157.25", type:"f", col:11, row:9, shells:[2,8,18,25,9,2], density:"7.90", melt:"1313°C", boil:"3250°C"},
-            {num:65, sym:"Tb", name:"Тербий", mass:"158.93", type:"f", col:12, row:9, shells:[2,8,18,27,8,2], density:"8.23", melt:"1356°C", boil:"3230°C"},
-            {num:66, sym:"Dy", name:"Диспрозий", mass:"162.50", type:"f", col:13, row:9, shells:[2,8,18,28,8,2], density:"8.54", melt:"1412°C", boil:"2567°C"},
-            {num:67, sym:"Ho", name:"Гольмий", mass:"164.93", type:"f", col:14, row:9, shells:[2,8,18,29,8,2], density:"8.79", melt:"1474°C", boil:"2700°C"},
-            {num:68, sym:"Er", name:"Эрбий", mass:"167.26", type:"f", col:15, row:9, shells:[2,8,18,30,8,2], density:"9.06", melt:"1529°C", boil:"2868°C"},
-            {num:69, sym:"Tm", name:"Тулий", mass:"168.93", type:"f", col:16, row:9, shells:[2,8,18,31,8,2], density:"9.32", melt:"1545°C", boil:"1950°C"},
-            {num:70, sym:"Yb", name:"Иттербий", mass:"173.05", type:"f", col:17, row:9, shells:[2,8,18,32,8,2], density:"6.90", melt:"824°C", boil:"1196°C"},
-            {num:71, sym:"Lu", name:"Лютеций", mass:"174.97", type:"f", col:18, row:9, shells:[2,8,18,32,9,2], density:"9.84", melt:"1663°C", boil:"3402°C"},
-            {num:72, sym:"Hf", name:"Гафний", mass:"178.49", type:"d", col:4, row:6, shells:[2,8,18,32,10,2], density:"13.31", melt:"2233°C", boil:"4603°C"},
-            {num:73, sym:"Ta", name:"Тантал", mass:"180.95", type:"d", col:5, row:6, shells:[2,8,18,32,11,2], density:"16.69", melt:"3017°C", boil:"5458°C"},
-            {num:74, sym:"W", name:"Вольфрам", mass:"183.84", type:"d", col:6, row:6, shells:[2,8,18,32,12,2], density:"19.25", melt:"3422°C", boil:"5555°C"},
-            {num:75, sym:"Re", name:"Рений", mass:"186.21", type:"d", col:7, row:6, shells:[2,8,18,32,13,2], density:"21.02", melt:"3186°C", boil:"5596°C"},
-            {num:76, sym:"Os", name:"Осмий", mass:"190.23", type:"d", col:8, row:6, shells:[2,8,18,32,14,2], density:"22.59", melt:"3033°C", boil:"5012°C"},
-            {num:77, sym:"Ir", name:"Иридий", mass:"192.22", type:"d", col:9, row:6, shells:[2,8,18,32,15,2], density:"22.56", melt:"2446°C", boil:"4428°C"},
-            {num:78, sym:"Pt", name:"Платина", mass:"195.08", type:"d", col:10, row:6, shells:[2,8,18,32,17,1], density:"21.45", melt:"1768°C", boil:"3825°C"},
-            {num:79, sym:"Au", name:"Золото", mass:"196.97", type:"d", col:11, row:6, shells:[2,8,18,32,18,1], density:"19.30", melt:"1064°C", boil:"2856°C"},
-            {num:80, sym:"Hg", name:"Ртуть", mass:"200.59", type:"d", col:12, row:6, shells:[2,8,18,32,18,2], density:"13.53", melt:"-39°C", boil:"357°C"},
+            {num:41, sym:"Nb", name:"Ниобий", mass:"92.906", type:"d", col:5, row:5, shells:[2,8,18,12,1], density:"8.57", melt:"2477°C", boil:"4744°C"},
+            {num:42, sym:"Mo", name:"Молибден", mass:"95.95", type:"d", col:6, row:5, shells:[2,8,18,13,1], density:"10.28", melt:"2623°C", boil:"4639°C"},
+            {num:43, sym:"Tc", name:"Технеций", mass:"98", type:"d", col:7, row:5, shells:[2,8,18,13,2], density:"11.5", melt:"2157°C", boil:"4265°C"},
+            {num:44, sym:"Ru", name:"Рутений", mass:"101.07", type:"d", col:8, row:5, shells:[2,8,18,15,1], density:"12.45", melt:"2334°C", boil:"4150°C"},
+            {num:45, sym:"Rh", name:"Родий", mass:"102.91", type:"d", col:9, row:5, shells:[2,8,18,16,1], density:"12.41", melt:"1964°C", boil:"3695°C"},
+            {num:46, sym:"Pd", name:"Палладий", mass:"106.42", type:"d", col:10, row:5, shells:[2,8,18,18], density:"12.023", melt:"1555°C", boil:"2963°C"},
+            {num:47, sym:"Ag", name:"Серебро", mass:"107.87", type:"d", col:11, row:5, shells:[2,8,18,18,1], density:"10.49", melt:"962°C", boil:"2162°C"},
+            {num:48, sym:"Cd", name:"Кадмий", mass:"112.41", type:"d", col:12, row:5, shells:[2,8,18,18,2], density:"8.65", melt:"321°C", boil:"767°C"},
+            {num:49, sym:"In", name:"Индий", mass:"114.82", type:"p", col:13, row:5, shells:[2,8,18,18,3], density:"7.31", melt:"157°C", boil:"2072°C"},
+            {num:50, sym:"Sn", name:"Олово", mass:"118.71", type:"p", col:14, row:5, shells:[2,8,18,18,4], density:"7.287", melt:"232°C", boil:"2602°C"},
+            {num:51, sym:"Sb", name:"Сурьма", mass:"121.76", type:"p", col:15, row:5, shells:[2,8,18,18,5], density:"6.685", melt:"631°C", boil:"1587°C"},
+            {num:52, sym:"Te", name:"Теллур", mass:"127.60", type:"p", col:16, row:5, shells:[2,8,18,18,6], density:"6.24", melt:"450°C", boil:"988°C"},
+            {num:53, sym:"I", name:"Иод", mass:"126.90", type:"p", col:17, row:5, shells:[2,8,18,18,7], density:"4.93", melt:"114°C", boil:"184°C"},
+            {num:54, sym:"Xe", name:"Ксенон", mass:"131.29", type:"p", col:18, row:5, shells:[2,8,18,18,8], density:"0.00588", melt:"-112°C", boil:"-108°C"},
+            {num:55, sym:"Cs", name:"Цезий", mass:"132.91", type:"s", col:1, row:6, shells:[2,8,18,18,8,1], density:"1.93", melt:"28.4°C", boil:"671°C"},
+            {num:56, sym:"Ba", name:"Барий", mass:"137.33", type:"s", col:2, row:6, shells:[2,8,18,18,8,2], density:"3.51", melt:"727°C", boil:"1897°C"},
+            {num:57, sym:"La", name:"Лантан", mass:"138.91", type:"f", col:4, row:9, shells:[2,8,18,18,9,2], density:"6.16", melt:"920°C", boil:"3464°C"},
+            {num:58, sym:"Ce", name:"Церий", mass:"140.12", type:"f", col:5, row:9, shells:[2,8,18,19,9,2], density:"6.77", melt:"798°C", boil:"3443°C"},
+            {num:59, sym:"Pr", name:"Празеодим", mass:"140.91", type:"f", col:6, row:9, shells:[2,8,18,21,8,2], density:"6.77", melt:"931°C", boil:"3520°C"},
+            {num:60, sym:"Nd", name:"Неодим", mass:"144.24", type:"f", col:7, row:9, shells:[2,8,18,22,8,2], density:"7.01", melt:"1021°C", boil:"3074°C"},
+            {num:61, sym:"Pm", name:"Прометий", mass:"145", type:"f", col:8, row:9, shells:, density:"7.26", melt:"1042°C", boil:"3000°C"},
+            {num:62, sym:"Sm", name:"Самарий", mass:"150.36", type:"f", col:9, row:9, shells:, density:"7.52", melt:"1072°C", boil:"1794°C"},
+            {num:63, sym:"Eu", name:"Европий", mass:"151.96", type:"f", col:10, row:9, shells:, density:"5.24", melt:"822°C", boil:"1529°C"},
+            {num:64, sym:"Gd", name:"Гадолиний", mass:"157.25", type:"f", col:11, row:9, shells:, density:"7.90", melt:"1313°C", boil:"3250°C"},
+            {num:65, sym:"Tb", name:"Тербий", mass:"158.93", type:"f", col:12, row:9, shells:, density:"8.23", melt:"1356°C", boil:"3230°C"},
+            {num:66, sym:"Dy", name:"Диспрозий", mass:"162.50", type:"f", col:13, row:9, shells:, density:"8.54", melt:"1412°C", boil:"2567°C"},
+            {num:67, sym:"Ho", name:"Гольмий", mass:"164.93", type:"f", col:14, row:9, shells:, density:"8.79", melt:"1474°C", boil:"2700°C"},
+            {num:68, sym:"Er", name:"Эрбий", mass:"167.26", type:"f", col:15, row:9, shells:, density:"9.06", melt:"1529°C", boil:"2868°C"},
+            {num:69, sym:"Tm", name:"Тулий", mass:"168.93", type:"f", col:16, row:9, shells:, density:"9.32", melt:"1545°C", boil:"1950°C"},
+            {num:70, sym:"Yb", name:"Иттербий", mass:"173.05", type:"f", col:17, row:9, shells:, density:"6.90", melt:"824°C", boil:"1196°C"},
+            {num:71, sym:"Lu", name:"Лютеций", mass:"174.97", type:"f", col:18, row:9, shells:, density:"9.84", melt:"1663°C", boil:"3402°C"},
+            {num:72, sym:"Hf", name:"Гафний", mass:"178.49", type:"d", col:4, row:6, shells:, density:"13.31", melt:"2233°C", boil:"4603°C"},
+            {num:73, sym:"Ta", name:"Тантал", mass:"180.95", type:"d", col:5, row:6, shells:, density:"16.69", melt:"3017°C", boil:"5458°C"},
+            {num:74, sym:"W", name:"Вольфрам", mass:"183.84", type:"d", col:6, row:6, shells:, density:"19.25", melt:"3422°C", boil:"5555°C"},
+            {num:75, sym:"Re", name:"Рений", mass:"186.21", type:"d", col:7, row:6, shells:, density:"21.02", melt:"3186°C", boil:"5596°C"},
+            {num:76, sym:"Os", name:"Осмий", mass:"190.23", type:"d", col:8, row:6, shells:, density:"22.59", melt:"3033°C", boil:"5012°C"},
+            {num:77, sym:"Ir", name:"Иридий", mass:"192.22", type:"d", col:9, row:6, shells:, density:"22.56", melt:"2446°C", boil:"4428°C"},
+            {num:78, sym:"Pt", name:"Платина", mass:"195.08", type:"d", col:10, row:6, shells:, density:"21.45", melt:"1768°C", boil:"3825°C"},
+            {num:79, sym:"Au", name:"Золото", mass:"196.97", type:"d", col:11, row:6, shells:, density:"19.30", melt:"1064°C", boil:"2856°C"},
+            {num:80, sym:"Hg", name:"Ртуть", mass:"200.59", type:"d", col:12, row:6, shells:, density:"13.53", melt:"-39°C", boil:"357°C"},
             {num:81, sym:"Tl", name:"Таллий", mass:"204.38", type:"p", col:13, row:6, shells:, density:"11.85", melt:"304°C", boil:"1473°C"},
             {num:82, sym:"Pb", name:"Свинец", mass:"207.2", type:"p", col:14, row:6, shells:, density:"11.34", melt:"327°C", boil:"1749°C"},
             {num:83, sym:"Bi", name:"Висмут", mass:"208.98", type:"p", col:15, row:6, shells:, density:"9.78", melt:"271°C", boil:"1564°C"},
@@ -236,16 +178,16 @@
             {num:88, sym:"Ra", name:"Радий", mass:"226", type:"s", col:2, row:7, shells:, density:"5.50", melt:"700°C", boil:"1737°C"},
             {num:89, sym:"Ac", name:"Актиний", mass:"227", type:"f", col:4, row:10, shells:, density:"10.07", melt:"1050°C", boil:"3198°C"},
             {num:90, sym:"Th", name:"Торий", mass:"232.04", type:"f", col:5, row:10, shells:, density:"11.72", melt:"1750°C", boil:"4788°C"},
-            {num:91, sym:"Pa", name:"Протактиний", mass:"231.04", type:"f", col:6, row:10, shells:, density:"15.37", melt:"1568°C", boil:"4027°C"},
-            {num:92, sym:"U", name:"Уран", mass:"238.03", type:"f", col:7, row:10, shells:, density:"18.95", melt:"1132°C", boil:"4131°C"},
-            {num:93, sym:"Np", name:"Нептуний", mass:"237", type:"f", col:8, row:10, shells:, density:"20.25", melt:"639°C", boil:"3902°C"},
-            {num:94, sym:"Pu", name:"Плутоний", mass:"244", type:"f", col:9, row:10, shells:, density:"19.84", melt:"640°C", boil:"3228°C"},
-            {num:95, sym:"Am", name:"Америций", mass:"243", type:"f", col:10, row:10, shells:, density:"13.67", melt:"1176°C", boil:"2607°C"},
-            {num:96, sym:"Cm", name:"Кюрий", mass:"247", type:"f", col:11, row:10, shells:, density:"13.51", melt:"1340°C", boil:"3110°C"},
-            {num:97, sym:"Bk", name:"Берклий", mass:"247", type:"f", col:12, row:10, shells:, density:"14.78", melt:"986°C", boil:"2627°C"},
-            {num:98, sym:"Cf", name:"Калифорний", mass:"251", type:"f", col:13, row:10, shells:, density:"15.10", melt:"900°C", boil:"1470°C"},
-            {num:99, sym:"Es", name:"Эйнштейний", mass:"252", type:"f", col:14, row:10, shells:, density:"8.84", melt:"860°C", boil:"—"},
-            {num:100, sym:"Fm", name:"Фермий", mass:"257", type:"f", col:15, row:10, shells:, density:"—", melt:"1527°C", boil:"—"},
+            {num:91, sym:"Pa", name:"Протактиний", mass:"231.04", type:"f", col:6, row:10, shells:[2,8,18,32,20,9,2], density:"15.37", melt:"1568°C", boil:"4027°C"},
+            {num:92, sym:"U", name:"Уран", mass:"238.03", type:"f", col:7, row:10, shells:[2,8,18,32,21,9,2], density:"18.95", melt:"1132°C", boil:"4131°C"},
+            {num:93, sym:"Np", name:"Нептуний", mass:"237", type:"f", col:8, row:10, shells:[2,8,18,32,22,9,2], density:"20.25", melt:"639°C", boil:"3902°C"},
+            {num:94, sym:"Pu", name:"Плутоний", mass:"244", type:"f", col:9, row:10, shells:[2,8,18,32,24,8,2], density:"19.84", melt:"640°C", boil:"3228°C"},
+            {num:95, sym:"Am", name:"Америций", mass:"243", type:"f", col:10, row:10, shells:[2,8,18,32,25,8,2], density:"13.67", melt:"1176°C", boil:"2607°C"},
+            {num:96, sym:"Cm", name:"Кюрий", mass:"247", type:"f", col:11, row:10, shells:[2,8,18,32,25,9,2], density:"13.51", melt:"1340°C", boil:"3110°C"},
+            {num:97, sym:"Bk", name:"Берклий", mass:"247", type:"f", col:12, row:10, shells:[2,8,18,32,27,8,2], density:"14.78", melt:"986°C", boil:"2627°C"},
+            {num:98, sym:"Cf", name:"Калифорний", mass:"251", type:"f", col:13, row:10, shells:[2,8,18,32,28,8,2], density:"15.10", melt:"900°C", boil:"1470°C"},
+            {num:99, sym:"Es", name:"Эйнштейний", mass:"252", type:"f", col:14, row:10, shells:[2,8,18,32,29,8,2], density:"8.84", melt:"860°C", boil:"—"},
+            {num:100, sym:"Fm", name:"Фермий", mass:"257", type:"f", col:15, row:10, shells:[2,8,18,32,30,8,2], density:"—", melt:"1527°C", boil:"—"},
             {num:101, sym:"Md", name:"Менделевий", mass:"258", type:"f", col:16, row:10, shells:[2,8,18,32,31,8,2], density:"—", melt:"827°C", boil:"—"},
             {num:102, sym:"No", name:"Нобелий", mass:"259", type:"f", col:17, row:10, shells:[2,8,18,32,32,8,2], density:"—", melt:"827°C", boil:"—"},
             {num:103, sym:"Lr", name:"Лоуренсий", mass:"262", type:"f", col:18, row:10, shells:[2,8,18,32,32,9,2], density:"—", melt:"1627°C", boil:"—"},
@@ -255,11 +197,11 @@
             {num:107, sym:"Bh", name:"Борий", mass:"270", type:"unknown", col:7, row:7, shells:[2,8,18,32,32,13,2], density:"37.1", melt:"—", boil:"—"},
             {num:108, sym:"Hs", name:"Хассий", mass:"277", type:"unknown", col:8, row:7, shells:[2,8,18,32,32,14,2], density:"40.7", melt:"—", boil:"—"},
             {num:109, sym:"Mt", name:"Мейтнерий", mass:"278", type:"unknown", col:9, row:7, shells:[2,8,18,32,32,15,2], density:"37.4", melt:"—", boil:"—"},
-            {num:110, sym:"Ds", name:"Дармштадтий", mass:"281", type:"unknown", col:10, row:7, shells:[2,8,18,32,32,16,2], density:"34.8", melt:"—", boil:"—"},
-            {num:111, sym:"Rg", name:"Рентгений", mass:"282", type:"unknown", col:11, row:7, shells:[2,8,18,32,32,17,2], density:"28.7", melt:"—", boil:"—"},
+            {num:110, sym:"Ds", name:"Дармштадтий", mass:"281", type:"unknown", col:10, row:7, shells:[2,8,18,32,32,17,1], density:"34.8", melt:"—", boil:"—"},
+            {num:111, sym:"Rg", name:"Рентгений", mass:"282", type:"unknown", col:11, row:7, shells:[2,8,18,32,32,18,1], density:"28.7", melt:"—", boil:"—"},
             {num:112, sym:"Cn", name:"Коперниций", mass:"285", type:"unknown", col:12, row:7, shells:[2,8,18,32,32,18,2], density:"23.7", melt:"—", boil:"—"},
-            {num:113, sym:"Nh", name:"Нихоний", mass:"286", type:"unknown", col:13, row:7, shells:[2,8,18,32,32,18,3], density:"16", melt:"430°C", boil:"1130°C"},
-            {num:114, sym:"Fl", name:"Флеровий", mass:"289", type:"unknown", col:14, row:7, shells:[2,8,18,32,32,18,4], density:"14", melt:"70°C", boil:"150°C"},
+            {num:113, sym:"Nh", name:"Нихоний", mass:"286", type:"unknown", col:13, row:7, shells:[2,8,18,32,32,18,3], density:"16.0", melt:"430°C", boil:"1130°C"},
+            {num:114, sym:"Fl", name:"Флеровий", mass:"289", type:"unknown", col:14, row:7, shells:[2,8,18,32,32,18,4], density:"14.0", melt:"70°C", boil:"150°C"},
             {num:115, sym:"Mc", name:"Московий", mass:"290", type:"unknown", col:15, row:7, shells:[2,8,18,32,32,18,5], density:"13.5", melt:"400°C", boil:"1100°C"},
             {num:116, sym:"Lv", name:"Ливерморий", mass:"293", type:"unknown", col:16, row:7, shells:[2,8,18,32,32,18,6], density:"12.9", melt:"435°C", boil:"810°C"},
             {num:117, sym:"Ts", name:"Теннессин", mass:"294", type:"unknown", col:17, row:7, shells:[2,8,18,32,32,18,7], density:"7.2", melt:"450°C", boil:"610°C"},
@@ -303,6 +245,7 @@
                 container.appendChild(div);
             });
         }
+
         // Функция открытия модального окна с динамическими орбитами
         function openModal(el) {
             document.getElementById('m-num').innerText = el.num;
@@ -347,6 +290,7 @@
             modalCard.style.boxShadow = `0 20px 50px rgba(0,0,0,0.9), 0 0 30px ${familyColor}`;
             modal.style.display = 'flex';
         }
+
         // Закрытие модального окна при клике на темную область вокруг карточки
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -368,7 +312,7 @@
         // Первичный рендер всей таблицы при загрузке страницы
         renderElements();
 
-                // Эффект живых химических частиц на заднем фоне (HTML5 Canvas)
+        // Эффект живых химических частиц на заднем фоне (HTML5 Canvas)
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
