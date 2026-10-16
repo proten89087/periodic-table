@@ -1,3 +1,4 @@
+// Полная база данных на 118 химических элементов
 const rawData = [
     "1|H|Водород|1.008|s|1|1|1|0.000089|-259°C|-253°C",
     "2|He|Гелий|4.0026|p|18|1|2|0.000178|-272°C|-269°C",
@@ -8,7 +9,7 @@ const rawData = [
     "7|N|Азот|14.007|p|15|2|2,5|0.00125|-210°C|-196°C",
     "8|O|Кислород|15.999|p|16|2|2,6|0.00143|-218°C|-183°C",
     "9|F|Фтор|18.998|p|17|2|2,7|0.0017|-220°C|-188°C",
-    "10|Ne|Neon|20.180|p|18|2|2,8|0.0009|-249°C|-246°C",
+    "10|Ne|Неон|20.180|p|18|2|2,8|0.0009|-249°C|-246°C",
     "11|Na|Натрий|22.990|s|1|3|2,8,1|0.971|98°C|883°C",
     "12|Mg|Магний|24.305|s|2|3|2,8,2|1.738|650°C|1090°C",
     "13|Al|Алюминий|26.982|p|13|3|2,8,3|2.698|660°C|2519°C",
@@ -119,11 +120,20 @@ const rawData = [
     "118|Og|Оганесон|294|unknown|18|7|2,8,18,32,32,18,8|н/д|н/д|н/д"
 ];
 
+// Корректный парсинг текстовой базы с индексами массивов
 const elementsData = rawData.map(item => {
     const parts = item.split('|');
     return {
-        num: parts[0], sym: parts[1], name: parts[2], mass: parts[3],
-        type: parts[4], col: parseInt(parts[5]), row: parseInt(parts[6]),
-        shells: parts[7].split(','), density: parts[8], melt: parts[9], boil: parts[10]
+        num: parts[0], 
+        sym: parts[1], 
+        name: parts[2], 
+        mass: parts[3],
+        type: parts[4], 
+        col: parseInt(parts[5]), 
+        row: parseInt(parts[6]),
+        shells: parts[7].split(','), 
+        density: parts[8], 
+        melt: parts[9], 
+        boil: parts[10]
     };
 });
