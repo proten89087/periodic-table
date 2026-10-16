@@ -212,7 +212,11 @@
 
         packedElements.forEach(raw => {
             const p = raw.split('|');
-            const el = { num: p, symbol: p, name: p, col: p, row: p, category: classMap[p], mass: p, density: p, melt: p, boil: p };
+            const el = { 
+                num: p[0], symbol: p[1], name: p[2], 
+                col: p[3], row: p[4], category: classMap[p[5]], 
+                mass: p[6], density: p[7], melt: p[8], boil: p[9] 
+            };
             el.shells = calculateShells(parseInt(el.num));
 
             const cell = document.createElement('div');
