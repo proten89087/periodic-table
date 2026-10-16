@@ -29,8 +29,8 @@ body {
 }
 
 h1 { 
-    font-size: 0.9rem; 
-    margin-bottom: 2px; 
+    font-size: 1.1rem; 
+    margin-bottom: 4px; 
     font-weight: 700; 
     letter-spacing: 1px; 
     color: #a0aec0; 
@@ -41,19 +41,19 @@ h1 {
 
 .search-container { 
     z-index: 10; 
-    margin-bottom: 4px; 
+    margin-bottom: 6px; 
     width: 100%; 
-    max-width: 260px; 
+    max-width: 280px; 
 }
 
 .search-input {
     width: 100%; 
-    padding: 5px 10px; 
+    padding: 7px 12px; 
     background: rgba(22, 23, 26, 0.9);
     border: 2px solid #2d3748; 
     border-radius: 6px; 
     color: #fff; 
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     outline: none; 
     transition: all 0.3s; 
     text-align: center; 
@@ -67,7 +67,7 @@ h1 {
 
 .table-wrapper { 
     width: 100%; 
-    height: calc(100vh - 55px); 
+    height: calc(100vh - 65px); 
     z-index: 2; 
     display: flex; 
     justify-content: center; 
@@ -78,16 +78,16 @@ h1 {
 
 .periodic-table {
     display: grid; 
-    grid-template-columns: repeat(18, minmax(18px, 1fr)); 
-    grid-template-rows: repeat(10, minmax(15px, 1fr)); 
-    gap: 2px; 
+    grid-template-columns: repeat(18, minmax(22px, 1fr)); 
+    grid-template-rows: repeat(10, minmax(20px, 1fr)); 
+    gap: 3px; 
     width: 100%; 
     height: 100%; 
     max-width: 100%;
     max-height: 100%;
     background: rgba(10, 12, 18, 0.9); 
     backdrop-filter: blur(10px); 
-    padding: 4px; 
+    padding: 6px; 
     border-radius: 8px; 
     border: 1px solid rgba(255, 255, 255, 0.02);
 }
@@ -95,8 +95,8 @@ h1 {
 .element {
     background: #16171a; 
     border: 1px solid currentColor; 
-    border-radius: 2px;
-    padding: 1px; 
+    border-radius: 3px;
+    padding: 2px 1px; 
     display: flex; 
     flex-direction: column; 
     justify-content: space-between;
@@ -115,23 +115,58 @@ h1 {
 }
 
 .element:hover { 
-    transform: scale(1.15); 
+    transform: scale(1.2); 
     z-index: 100; 
-    box-shadow: 0 0 8px currentColor; 
+    box-shadow: 0 0 10px currentColor; 
     background: #202226; 
 }
 
-.element .num { font-size: min(0.6vw, 0.6vh, 8px); align-self: flex-start; font-weight: 700; color: rgba(255, 255, 255, 0.35); line-height: 1; }
-.element .symbol { font-size: min(1.3vw, 1.3vh, 14px); font-weight: 800; text-align: center; line-height: 1.1; }
-.element .name { font-size: min(0.45vw, 0.45vh, 6px); font-weight: 900; color: #fff; text-align: center; text-transform: uppercase; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; }
-.element .mass { font-size: min(0.48vw, 0.48vh, 6px); text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.5); }
+/* СУЩЕСТВЕННО УВЕЛИЧЕННЫЕ РАЗМЕРЫ ШРИФТОВ ДЛЯ ТАБЛИЦЫ */
+.element .num { 
+    font-size: min(0.9vw, 0.9vh, 12px); /* Порядковый номер элемента */
+    align-self: flex-start; 
+    font-weight: 700; 
+    color: rgba(255, 255, 255, 0.45); 
+    line-height: 1; 
+    padding-left: 1px;
+}
 
+.element .symbol { 
+    font-size: min(2.1vw, 2.1vh, 22px); /* Химический символ (крупный и жирный) */
+    font-weight: 800; 
+    text-align: center; 
+    line-height: 1; 
+    margin: 1px 0;
+}
+
+.element .name { 
+    font-size: min(0.75vw, 0.75vh, 10px); /* Название на русском языке */
+    font-weight: 900; 
+    color: #fff; 
+    text-align: center; 
+    text-transform: uppercase; 
+    width: 100%; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+    line-height: 1; 
+}
+
+.element .mass { 
+    font-size: min(0.7vw, 0.7vh, 9px); /* Атомная масса внизу ячейки */
+    text-align: center; 
+    line-height: 1; 
+    color: rgba(255, 255, 255, 0.6); 
+}
+
+/* Цвета электронных семейств */
 .s-element { color: #b6be5d; } 
 .p-element { color: #00b462; } 
 .d-element { color: #ff5c5c; } 
 .f-element { color: #b380a0; } 
 .unknown-element { color: #a0aec0; }
 
+/* Дизайн всплывающего модального окна */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 99999; backdrop-filter: blur(4px);
@@ -175,9 +210,10 @@ h1 {
     100% { transform: translate(-50%, -50%) rotate(360deg); } 
 }
 
-@media (max-height: 400px) or (max-width: 600px) {
+/* Размеры сетки принудительно фиксируются на смартфонах и мелких дисплеях */
+@media (max-height: 550px) or (max-width: 850px) {
     .periodic-table {
-        width: 750px;
-        height: 380px;
+        width: 900px;
+        height: 480px;
     }
 }
