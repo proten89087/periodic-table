@@ -84,14 +84,17 @@
             justify-content: space-between;
             background-color: #f9f9f9;
             cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.1s;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
             user-select: none;
         }
 
-        .cell:hover {
-            transform: scale(1.03);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            z-index: 10;
+        /* Увеличение при наведении (ПК) и при клике (класс .active для ПК и мобильных) */
+        .cell:hover,
+        .cell.active {
+            transform: scale(1.1) !important;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            z-index: 100;
+            outline: 2px solid #000;
         }
 
         .cell.dimmed {
@@ -139,7 +142,7 @@
             height: 15px;
         }
 
-        /* Группы элементов */
+        /* Цвета групп элементов */
         .nonmetal { background-color: var(--bg-nonmetal); }
         .noble { background-color: var(--bg-noble); }
         .alkali { background-color: var(--bg-alkali); }
@@ -165,12 +168,12 @@
 
     <div class="controls">
         <input type="text" id="search" class="search-input" placeholder="Поиск по названию или символу...">
-        <span class="hint">💡 Двойной клик на поле поиска сбросит фильтр.</span>
+        <span class="hint">💡 Двойной клик на поле поиска сбросит фильтр. Клик на элемент увеличит его.</span>
     </div>
 
     <div class="table-container">
         <div id="periodic-table" class="periodic-table">
-        <!-- Элементы таблицы (Периоды 1-6, часть) -->
+        <!-- Элементы таблицы (Периоды 1-4) -->
         <div class="cell nonmetal" data-name="Водород" data-sym="H" data-num="1"><div class="num">1</div><div class="sym">H</div><div class="name">Водород</div><div class="weight">1.008</div></div>
         <div class="empty-cell" style="grid-column: span 16;"></div>
         <div class="cell noble" data-name="Гелий" data-sym="He" data-num="2"><div class="num">2</div><div class="sym">He</div><div class="name">Гелий</div><div class="weight">4.0026</div></div>
@@ -213,6 +216,64 @@
         <div class="cell nonmetal" data-name="Селен" data-sym="Se" data-num="34"><div class="num">34</div><div class="sym">Se</div><div class="name">Селен</div><div class="weight">78.971</div></div>
         <div class="cell halogen" data-name="Бром" data-sym="Br" data-num="35"><div class="num">35</div><div class="sym">Br</div><div class="name">Бром</div><div class="weight">79.904</div></div>
         <div class="cell noble" data-name="Криптон" data-sym="Kr" data-num="36"><div class="num">36</div><div class="sym">Kr</div><div class="name">Криптон</div><div class="weight">83.798</div></div>
+        <!-- Элементы таблицы (Период 5 и начало Периода 6) -->
+        <div class="cell alkali" data-name="Рубидий" data-sym="Rb" data-num="37"><div class="num">37</div><div class="sym">Rb</div><div class="name">Рубидий</div><div class="weight">85.468</div></div>
+        <div class="cell alkaline" data-name="Стронций" data-sym="Sr" data-num="38"><div class="num">38</div><div class="sym">Sr</div><div class="name">Стронций</div><div class="weight">87.62</div></div>
+        <div class="cell transition" data-name="Иттрий" data-sym="Y" data-num="39"><div class="num">39</div><div class="sym">Y</div><div class="name">Иттрий</div><div class="weight">88.906</div></div>
+        <div class="cell transition" data-name="Цирконий" data-sym="Zr" data-num="40"><div class="num">40</div><div class="sym">Zr</div><div class="name">Цирконий</div><div class="weight">91.224</div></div>
+        <div class="cell transition" data-name="Ниобий" data-sym="Nb" data-num="41"><div class="num">41</div><div class="sym">Nb</div><div class="name">Ниобий</div><div class="weight">92.906</div></div>
+        <div class="cell transition" data-name="Молибден" data-sym="Mo" data-num="42"><div class="num">42</div><div class="sym">Mo</div><div class="name">Молибден</div><div class="weight">95.95</div></div>
+        <div class="cell transition" data-name="Технеций" data-sym="Tc" data-num="43"><div class="num">43</div><div class="sym">Tc</div><div class="name">Технеций</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Рутений" data-sym="Ru" data-num="44"><div class="num">44</div><div class="sym">Ru</div><div class="name">Рутений</div><div class="weight">101.07</div></div>
+        <div class="cell transition" data-name="Родий" data-sym="Rh" data-num="45"><div class="num">45</div><div class="sym">Rh</div><div class="name">Родий</div><div class="weight">102.91</div></div>
+        <div class="cell transition" data-name="Палладий" data-sym="Pd" data-num="46"><div class="num">46</div><div class="sym">Pd</div><div class="name">Палладий</div><div class="weight">106.42</div></div>
+        <div class="cell transition" data-name="Серебро" data-sym="Ag" data-num="47"><div class="num">47</div><div class="sym">Ag</div><div class="name">Серебро</div><div class="weight">107.87</div></div>
+        <div class="cell transition" data-name="Кадмий" data-sym="Cd" data-num="48"><div class="num">48</div><div class="sym">Cd</div><div class="name">Кадмий</div><div class="weight">112.41</div></div>
+        <div class="cell post-transition" data-name="Индий" data-sym="In" data-num="49"><div class="num">49</div><div class="sym">In</div><div class="name">Индий</div><div class="weight">114.82</div></div>
+        <div class="cell post-transition" data-name="Олово" data-sym="Sn" data-num="50"><div class="num">50</div><div class="sym">Sn</div><div class="name">Олово</div><div class="weight">118.71</div></div>
+        <div class="cell metalloid" data-name="Сурьма" data-sym="Sb" data-num="51"><div class="num">51</div><div class="sym">Sb</div><div class="name">Сурьма</div><div class="weight">121.76</div></div>
+        <div class="cell metalloid" data-name="Теллур" data-sym="Te" data-num="52"><div class="num">52</div><div class="sym">Te</div><div class="name">Теллур</div><div class="weight">127.60</div></div>
+        <div class="cell halogen" data-name="Иод" data-sym="I" data-num="53"><div class="num">53</div><div class="sym">I</div><div class="name">Иод</div><div class="weight">126.90</div></div>
+        <div class="cell noble" data-name="Ксенон" data-sym="Xe" data-num="54"><div class="num">54</div><div class="sym">Xe</div><div class="name">Ксенон</div><div class="weight">131.29</div></div>
+
+        <div class="cell alkali" data-name="Цезий" data-sym="Cs" data-num="55"><div class="num">55</div><div class="sym">Cs</div><div class="name">Цезий</div><div class="weight">132.91</div></div>
+        <div class="cell alkaline" data-name="Барий" data-sym="Ba" data-num="56"><div class="num">56</div><div class="sym">Ba</div><div class="name">Барий</div><div class="weight">137.33</div></div>
+        <!-- Элементы таблицы (Продолжение Периода 6 и Период 7) -->
+        <div class="cell lanthanide" data-name="Лантаноиды" data-sym="57-71" data-num="57-71"><div class="num">57-71</div><div class="sym">La-Lu</div><div class="name">Лантан.</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Гафний" data-sym="Hf" data-num="72"><div class="num">72</div><div class="sym">Hf</div><div class="name">Гафний</div><div class="weight">178.49</div></div>
+        <div class="cell transition" data-name="Тантал" data-sym="Ta" data-num="73"><div class="num">73</div><div class="sym">Ta</div><div class="name">Тантал</div><div class="weight">180.95</div></div>
+        <div class="cell transition" data-name="Вольфрам" data-sym="W" data-num="74"><div class="num">74</div><div class="sym">W</div><div class="name">Вольфрам</div><div class="weight">183.84</div></div>
+        <div class="cell transition" data-name="Рений" data-sym="Re" data-num="75"><div class="num">75</div><div class="sym">Re</div><div class="name">Рений</div><div class="weight">186.21</div></div>
+        <div class="cell transition" data-name="Осмий" data-sym="Os" data-num="76"><div class="num">76</div><div class="sym">Os</div><div class="name">Осмий</div><div class="weight">190.23</div></div>
+        <div class="cell transition" data-name="Иридий" data-sym="Ir" data-num="77"><div class="num">77</div><div class="sym">Ir</div><div class="name">Иридий</div><div class="weight">192.22</div></div>
+        <div class="cell transition" data-name="Платина" data-sym="Pt" data-num="78"><div class="num">78</div><div class="sym">Pt</div><div class="name">Платина</div><div class="weight">195.08</div></div>
+        <div class="cell transition" data-name="Золото" data-sym="Au" data-num="79"><div class="num">79</div><div class="sym">Au</div><div class="name">Золото</div><div class="weight">196.97</div></div>
+        <div class="cell transition" data-name="Ртуть" data-sym="Hg" data-num="80"><div class="num">80</div><div class="sym">Hg</div><div class="name">Ртуть</div><div class="weight">200.59</div></div>
+        <div class="cell post-transition" data-name="Таллий" data-sym="Tl" data-num="81"><div class="num">81</div><div class="sym">Tl</div><div class="name">Таллий</div><div class="weight">204.38</div></div>
+        <div class="cell post-transition" data-name="Свинец" data-sym="Pb" data-num="82"><div class="num">82</div><div class="sym">Pb</div><div class="name">Свинец</div><div class="weight">207.2</div></div>
+        <div class="cell post-transition" data-name="Висмут" data-sym="Bi" data-num="83"><div class="num">83</div><div class="sym">Bi</div><div class="name">Висмут</div><div class="weight">208.98</div></div>
+        <div class="cell post-transition" data-name="Полоний" data-sym="Po" data-num="84"><div class="num">84</div><div class="sym">Po</div><div class="name">Полоний</div><div class="weight"></div></div>
+        <div class="cell halogen" data-name="Астат" data-sym="At" data-num="85"><div class="num">85</div><div class="sym">At</div><div class="name">Астат</div><div class="weight"></div></div>
+        <div class="cell noble" data-name="Радон" data-sym="Rn" data-num="86"><div class="num">86</div><div class="sym">Rn</div><div class="name">Радон</div><div class="weight"></div></div>
+
+        <div class="cell alkali" data-name="Франций" data-sym="Fr" data-num="87"><div class="num">87</div><div class="sym">Fr</div><div class="name">Франций</div><div class="weight"></div></div>
+        <div class="cell alkaline" data-name="Радий" data-sym="Ra" data-num="88"><div class="num">88</div><div class="sym">Ra</div><div class="name">Радий</div><div class="weight"></div></div>
+        <div class="cell actinide" data-name="Актиноиды" data-sym="89-103" data-num="89-103"><div class="num">89-103</div><div class="sym">Ac-Lr</div><div class="name">Актин.</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Резерфордий" data-sym="Rf" data-num="104"><div class="num">104</div><div class="sym">Rf</div><div class="name">Резерфордий</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Дубний" data-sym="Db" data-num="105"><div class="num">105</div><div class="sym">Db</div><div class="name">Дубний</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Сиборгий" data-sym="Sg" data-num="106"><div class="num">106</div><div class="sym">Sg</div><div class="name">Сиборгий</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Борий" data-sym="Bh" data-num="107"><div class="num">107</div><div class="sym">Bh</div><div class="name">Борий</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Хассий" data-sym="Hs" data-num="108"><div class="num">108</div><div class="sym">Hs</div><div class="name">Хассий</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Мейтнерий" data-sym="Mt" data-num="109"><div class="num">109</div><div class="sym">Mt</div><div class="name">Мейтнерий</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Дармштадтий" data-sym="Ds" data-num="110"><div class="num">110</div><div class="sym">Ds</div><div class="name">Дармштадтий</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Рентгений" data-sym="Rg" data-num="111"><div class="num">111</div><div class="sym">Rg</div><div class="name">Рентгений</div><div class="weight"></div></div>
+        <div class="cell transition" data-name="Коперниций" data-sym="Cn" data-num="112"><div class="num">112</div><div class="sym">Cn</div><div class="name">Коперниций</div><div class="weight"></div></div>
+        <div class="cell post-transition" data-name="Нихоний" data-sym="Nh" data-num="113"><div class="num">113</div><div class="sym">Nh</div><div class="name">Нихоний</div><div class="weight"></div></div>
+        <div class="cell post-transition" data-name="Флеровий" data-sym="Fl" data-num="114"><div class="num">114</div><div class="sym">Fl</div><div class="name">Флеровий</div><div class="weight"></div></div>
+        <div class="cell post-transition" data-name="Московий" data-sym="Mc" data-num="115"><div class="num">115</div><div class="sym">Mc</div><div class="name">Московий</div><div class="weight"></div></div>
+        <div class="cell post-transition" data-name="Ливерморий" data-sym="Lv" data-num="116"><div class="num">116</div><div class="sym">Lv</div><div class="name">Ливерморий</div><div class="weight"></div></div>
+        <div class="cell halogen" data-name="Теннессин" data-sym="Ts" data-num="117"><div class="num">117</div><div class="sym">Ts</div><div class="name">Теннессин</div><div class="weight"></div></div>
+        <div class="cell noble" data-name="Оганесон" data-sym="Og" data-num="118"><div class="num">118</div><div class="sym">Og</div><div class="name">Оганесон</div><div class="weight"></div></div>
         <!-- Продолжение таблицы: Разделитель и Лантаноиды -->
         <div class="spacer-row"></div>
 
@@ -258,6 +319,7 @@
     const searchInput = document.getElementById('search');
     const cells = document.querySelectorAll('.cell');
 
+    // Функция поиска
     function filterElements() {
         const query = searchInput.value.toLowerCase().trim();
         
@@ -270,17 +332,35 @@
                 cell.classList.remove('dimmed');
             } else {
                 cell.classList.add('dimmed');
+                cell.classList.remove('active');
             }
         });
     }
 
+    // Сброс фильтра и эффектов по двойному клику
     function resetSearch() {
         searchInput.value = '';
-        cells.forEach(cell => cell.classList.remove('dimmed'));
+        cells.forEach(cell => {
+            cell.classList.remove('dimmed');
+            cell.classList.remove('active');
+        });
     }
+
+    // Увеличение карточки элемента по клику
+    cells.forEach(cell => {
+        cell.addEventListener('click', () => {
+            if (cell.classList.contains('active')) {
+                cell.classList.remove('active');
+            } else {
+                cells.forEach(c => c.classList.remove('active'));
+                cell.classList.add('active');
+            }
+        });
+    });
 
     searchInput.addEventListener('input', filterElements);
     searchInput.addEventListener('dblclick', resetSearch);
 </script>
 </body>
 </html>
+
