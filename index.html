@@ -3,364 +3,658 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Интерактивная таблица Менделеева</title>
+    <title>Периодическая система элементов Менделеева</title>
     <style>
-        :root {
-            --bg-nonmetal: #e2f0cb;
-            --bg-noble: #fce4ec;
-            --bg-alkali: #ffcdd2;
-            --bg-alkaline: #ffe0b2;
-            --bg-metalloid: #e0f2f1;
-            --bg-halogen: #fff9c4;
-            --bg-post-transition: #d1c4e9;
-            --bg-transition: #bbdefb;
-            --bg-lanthanide: #e1bee7;
-            --bg-actinide: #ffccbc;
-            --text-color: #333;
-            --border-color: #ccc;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            padding: 20px;
-            background-color: #fff;
-            color: var(--text-color);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #060709; color: #fff; min-height: 100vh;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; overflow-x: hidden; padding: 1vw; position: relative;
         }
-
-        .controls {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
+        #particles-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        
+        h1 {
+            font-size: 1.4rem; margin-bottom: 8px; font-weight: bold; letter-spacing: 4px;
+            color: #a0aec0; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 180, 98, 0.3); z-index: 10;
+            text-align: center;
         }
-
+        .search-container { z-index: 10; margin-bottom: 12px; width: 100%; max-width: 400px; position: relative; padding: 0 10px; }
         .search-input {
-            padding: 10px 15px;
-            font-size: 16px;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            width: 300px;
-            max-width: 100%;
-            outline: none;
-            transition: border-color 0.2s;
+            width: 100%; padding: 10px 15px; background: rgba(22, 23, 26, 0.9);
+            border: 2px solid #2d3748; border-radius: 8px; color: #fff; font-size: 1rem;
+            outline: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center;
         }
-
-        .search-input:focus {
-            border-color: #007bff;
-        }
-
-        .hint {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
+        .search-input:focus { border-color: #00b462; box-shadow: 0 0 15px rgba(0, 180, 98, 0.4); }
+        
+        .table-wrapper {
+            width: 100%; max-width: 1600px; overflow-x: auto; padding: 20px 10px; z-index: 2;
             -webkit-overflow-scrolling: touch;
-            margin-bottom: 30px;
         }
-
+        
         .periodic-table {
-            display: grid;
-            grid-template-columns: repeat(18, minmax(65px, 1fr));
-            gap: 4px;
-            min-width: 1250px;
+            display: grid; grid-template-columns: repeat(18, minmax(60px, 1fr));
+            grid-template-rows: repeat(10, minmax(55px, 1fr)); gap: 8px;
+            width: 100%; min-width: 1150px; height: 78vh; max-height: 800px;
+            background: rgba(10, 12, 18, 0.9); backdrop-filter: blur(10px);
+            padding: 20px; border-radius: 16px; box-shadow: 0 30px 80px rgba(0,0,0,0.95);
+            border: 1px solid rgba(255, 255, 255, 0.02); position: relative;
         }
-        .cell {
-            position: relative;
-            border: 1px solid var(--border-color);
-            padding: 5px;
-            height: 75px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background-color: #f9f9f9;
-            cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-            user-select: none;
+        .element {
+            background: #16171a; border: 2px solid currentColor; border-radius: 4px;
+            padding: 5px; display: flex; flex-direction: column; justify-content: space-between;
+            align-items: center; cursor: pointer; position: relative; user-select: none;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s, opacity 0.3s;
         }
+        
+        .element.fade-out { opacity: 0.3; filter: none !important; }
+        .element:hover:not(.active) { transform: scale(1.15); z-index: 10; box-shadow: 0 0 15px currentColor; }
+        .element .num { font-size: 0.75rem; align-self: flex-start; font-weight: bold; line-height: 1; }
+        .element .symbol { font-size: 1.4rem; font-weight: bold; text-align: center; line-height: 1; text-shadow: 0 0 8px currentColor; }
+        .element .name { font-size: 0.75rem !important; text-align: center; color: #fff !important; font-weight: 900 !important; text-transform: uppercase; letter-spacing: 0.5px; }
+        .element .mass { font-size: 0.65rem; text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.8); }
+        .element .shells-list, .element .extended-info, .element .orbit-container { display: none; }
 
-        /* Увеличение при наведении (ПК) и при клике (класс .active для ПК и мобильных) */
-        .cell:hover,
-        .cell.active {
-            transform: scale(1.1) !important;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-            z-index: 100;
-            outline: 2px solid #000;
-        }
+        .s-element { color: #b6be5d; } .p-element { color: #00b462; }
+        .d-element { color: #ff5c5c; } .f-element { color: #b380a0; } .unknown-element { color: #a0aec0; }
 
-        .cell.dimmed {
-            opacity: 0.25;
-            filter: grayscale(80%);
-        }
-
-        .cell .num {
-            font-size: 11px;
-            font-weight: 600;
-            color: #555;
-            text-align: left;
+        .element.active {
+            transform: scale(5.5) !important; z-index: 999999 !important; 
+            box-shadow: 0 30px 70px rgba(0,0,0,0.95), 0 0 45px currentColor !important; 
+            border: 3px solid currentColor !important; padding: 6px 8px; 
+            display: flex; flex-direction: column; justify-content: flex-start;
+            opacity: 1 !important; filter: none !important; color: #fff !important;
         }
 
-        .cell .sym {
-            font-size: 18px;
-            font-weight: 700;
-            text-align: center;
-            line-height: 1.1;
-        }
+        .element.active.s-element { background: #1c200c !important; }
+        .element.active.p-element { background: #042410 !important; }
+        .element.active.d-element { background: #2b0b0b !important; }
+        .element.active.f-element { background: #260d21 !important; }
+        .element.active.unknown-element { background: #171c24 !important; }
+        
+        .element.active .num { font-size: 0.32rem; align-self: flex-start; color: #fff !important; }
+        .element.active .symbol { font-size: 0.95rem; margin-top: 1px; text-align: left; align-self: flex-start; color: #fff !important; text-shadow: 0 0 15px currentColor !important; }
+        .element.active .name { display: block; font-size: 0.38rem !important; font-weight: 900 !important; text-align: left; color: #fff !important; align-self: flex-start; margin-bottom: 2px; }
+        .element.active .mass { font-size: 0.34rem; font-weight: bold; text-align: left; align-self: flex-start; width: 100%; border-top: 1px solid rgba(255,255,255,0.25); padding-top: 2px; margin-top: 1px; color: #fff !important; }
+        .element.active .shells-list { display: flex; flex-direction: column; position: absolute; right: 8px; top: 8px; font-size: 0.32rem; font-weight: bold; color: #fff !important; text-align: right; line-height: 1.1; z-index: 110; }
+        .element.active .extended-info { display: flex; flex-direction: column; gap: 1px; font-size: 0.23rem; color: #fff !important; text-align: left; width: 100%; margin-top: 2px; }
+        .extended-info div { display: flex; justify-content: space-between; line-height: 1; color: #fff !important; }
+        .extended-info span { color: rgba(255,255,255,0.6) !important; font-weight: 600; }
+        .element.active .orbit-container { display: block; position: absolute; top: 50%; left: 50%; width: 92%; height: 92%; transform: translate(-50%, -50%); pointer-events: none; z-index: 1; opacity: 0.55; }
+        .orbit { position: absolute; top: 50%; left: 50%; border: 1px solid currentColor; border-radius: 50%; transform: translate(-50%, -50%); animation: spin linear infinite; }
+        .electron-dot { position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%; box-shadow: 0 0 6px #fff, 0 0 10px currentColor; transform: translate(-50%, -50%); }
+        @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 
-        .cell .name {
-            font-size: 13px;
-            font-weight: 900 !important;
-            text-align: center;
-            color: #000;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-transform: uppercase;
-        }
-
-        .cell .weight {
-            font-size: 10px;
-            color: #444;
-            text-align: center;
-        }
-
-        .empty-cell {
-            visibility: hidden;
-        }
-
-        .spacer-row {
-            grid-column: span 18;
-            height: 15px;
-        }
-
-        /* Цвета групп элементов */
-        .nonmetal { background-color: var(--bg-nonmetal); }
-        .noble { background-color: var(--bg-noble); }
-        .alkali { background-color: var(--bg-alkali); }
-        .alkaline { background-color: var(--bg-alkaline); }
-        .metalloid { background-color: var(--bg-metalloid); }
-        .halogen { background-color: var(--bg-halogen); }
-        .post-transition { background-color: var(--bg-post-transition); }
-        .transition { background-color: var(--bg-transition); }
-        .lanthanide { background-color: var(--bg-lanthanide); }
-        .actinide { background-color: var(--bg-actinide); }
-
-        @media (max-width: 1200px) {
-            .cell {
-                height: 70px;
-                padding: 4px;
+        @media (max-width: 768px) {
+            h1 { font-size: 1.1rem; margin-top: 10px; }
+            .search-input { font-size: 0.9rem; padding: 8px 12px; }
+            .element .name { font-size: 0.72rem !important; font-weight: 900 !important; }
+            .element.active {
+                position: fixed !important; top: 50% !important; left: 50% !important;
+                transform: translate(-50%, -50%) scale(1) !important; width: 85vw !important;
+                max-width: 320px !important; height: 340px !important; grid-column: auto !important;
+                grid-row: auto !important; padding: 20px !important; border-radius: 12px !important;
+                box-shadow: 0 0 60px rgba(0,0,0,0.95), 0 0 35px currentColor !important;
             }
-            .cell .sym { font-size: 16px; }
-            .cell .name { font-size: 12px; }
+            .element.active .num { font-size: 1rem !important; }
+            .element.active .symbol { font-size: 3rem !important; margin-top: 5px !important; }
+            .element.active .name { font-size: 1.3rem !important; font-weight: 900 !important; margin-bottom: 10px !important; }
+            .element.active .mass { font-size: 1.1rem !important; padding-top: 8px !important; margin-top: 5px !important; }
+            .element.active .shells-list { font-size: 0.9rem !important; right: 15px !important; top: 15px !important; line-height: 1.3 !important; }
+            .element.active .extended-info { font-size: 0.85rem !important; gap: 5px !important; margin-top: 10px !important; }
+            .element.active .extended-info div { line-height: 1.3 !important; }
         }
     </style>
 </head>
 <body>
-
-    <div class="controls">
-        <input type="text" id="search" class="search-input" placeholder="Поиск по названию или символу...">
-        <span class="hint">💡 Двойной клик на поле поиска сбросит фильтр. Клик на элемент увеличит его.</span>
+    <canvas id="particles-canvas"></canvas>
+    <h1>Периодическая система элементов Менделеева</h1>
+    
+    <div class="search-container">
+        <input type="text" id="search" class="search-input" placeholder="Поиск (двойной клик для сброса)...">
     </div>
 
-    <div class="table-container">
-        <div id="periodic-table" class="periodic-table">
-        <!-- Элементы таблицы (Периоды 1-4) -->
-        <div class="cell nonmetal" data-name="Водород" data-sym="H" data-num="1"><div class="num">1</div><div class="sym">H</div><div class="name">Водород</div><div class="weight">1.008</div></div>
-        <div class="empty-cell" style="grid-column: span 16;"></div>
-        <div class="cell noble" data-name="Гелий" data-sym="He" data-num="2"><div class="num">2</div><div class="sym">He</div><div class="name">Гелий</div><div class="weight">4.0026</div></div>
+    <div class="table-wrapper">
+        <div class="periodic-table">
+            <!-- Водород -->
+            <div class="element s-element" data-num="1" data-name="Водород" data-sym="H" style="grid-column: 1; grid-row: 1;">
+                <div class="num">1</div><div class="symbol">H</div><div class="name">Водород</div><div class="mass">1.008</div>
+                <div class="shells-list">1</div><div class="extended-info"><div><span>Конфигурация:</span>1s¹</div></div><div class="orbit-container" data-shells="1"></div>
+            </div>
+            <!-- Гелий -->
+            <div class="element p-element" data-num="2" data-name="Гелий" data-sym="He" style="grid-column: 18; grid-row: 1;">
+                <div class="num">2</div><div class="symbol">He</div><div class="name">Гелий</div><div class="mass">4.0026</div>
+                <div class="shells-list">2</div><div class="extended-info"><div><span>Конфигурация:</span>1s²</div></div><div class="orbit-container" data-shells="2"></div>
+            </div>
+            <!-- Литий -->
+            <div class="element s-element" data-num="3" data-name="Литий" data-sym="Li" style="grid-column: 1; grid-row: 2;">
+                <div class="num">3</div><div class="symbol">Li</div><div class="name">Литий</div><div class="mass">6.94</div>
+                <div class="shells-list">2<br>1</div><div class="orbit-container" data-shells="2,1"></div>
+            </div>
+            <!-- Бериллий -->
+            <div class="element s-element" data-num="4" data-name="Бериллий" data-sym="Be" style="grid-column: 2; grid-row: 2;">
+                <div class="num">4</div><div class="symbol">Be</div><div class="name">Бериллий</div><div class="mass">9.0122</div>
+                <div class="shells-list">2<br>2</div><div class="orbit-container" data-shells="2,2"></div>
+            </div>
+            <!-- Бор -->
+            <div class="element p-element" data-num="5" data-name="Бор" data-sym="B" style="grid-column: 13; grid-row: 2;">
+                <div class="num">5</div><div class="symbol">B</div><div class="name">Бор</div><div class="mass">10.81</div>
+                <div class="shells-list">2<br>3</div><div class="orbit-container" data-shells="2,3"></div>
+            </div>
+            <!-- Углерод -->
+            <div class="element p-element" data-num="6" data-name="Углерод" data-sym="C" style="grid-column: 14; grid-row: 2;">
+                <div class="num">6</div><div class="symbol">C</div><div class="name">Углерод</div><div class="mass">12.011</div>
+                <div class="shells-list">2<br>4</div><div class="orbit-container" data-shells="2,4"></div>
+            </div>
+            <!-- Азот -->
+            <div class="element p-element" data-num="7" data-name="Азот" data-sym="N" style="grid-column: 15; grid-row: 2;">
+                <div class="num">7</div><div class="symbol">N</div><div class="name">Азот</div><div class="mass">14.007</div>
+                <div class="shells-list">2<br>5</div><div class="orbit-container" data-shells="2,5"></div>
+            </div>
+            <!-- Кислород -->
+            <div class="element p-element" data-num="8" data-name="Кислород" data-sym="O" style="grid-column: 16; grid-row: 2;">
+                <div class="num">8</div><div class="symbol">O</div><div class="name">Кислород</div><div class="mass">15.999</div>
+                <div class="shells-list">2<br>6</div><div class="orbit-container" data-shells="2,6"></div>
+            </div>
+            <!-- Фтор -->
+            <div class="element p-element" data-num="9" data-name="Фтор" data-sym="F" style="grid-column: 17; grid-row: 2;">
+                <div class="num">9</div><div class="symbol">F</div><div class="name">Фтор</div><div class="mass">18.998</div>
+                <div class="shells-list">2<br>7</div><div class="orbit-container" data-shells="2,7"></div>
+            </div>
+            <!-- Неон -->
+            <div class="element p-element" data-num="10" data-name="Неон" data-sym="Ne" style="grid-column: 18; grid-row: 2;">
+                <div class="num">10</div><div class="symbol">Ne</div><div class="name">Неон</div><div class="mass">20.180</div>
+                <div class="shells-list">2<br>8</div><div class="orbit-container" data-shells="2,8"></div>
+            </div>
+            <!-- Натрий -->
+            <div class="element s-element" data-num="11" data-name="Натрий" data-sym="Na" style="grid-column: 1; grid-row: 3;">
+                <div class="num">11</div><div class="symbol">Na</div><div class="name">Натрий</div><div class="mass">22.990</div>
+                <div class="shells-list">2<br>8<br>1</div><div class="orbit-container" data-shells="2,8,1"></div>
+            </div>
+            <!-- Магний -->
+            <div class="element s-element" data-num="12" data-name="Магний" data-sym="Mg" style="grid-column: 2; grid-row: 3;">
+                <div class="num">12</div><div class="symbol">Mg</div><div class="name">Магний</div><div class="mass">24.305</div>
+                <div class="shells-list">2<br>8<br>2</div><div class="orbit-container" data-shells="2,8,2"></div>
+            </div>
+            <!-- Алюминий -->
+            <div class="element p-element" data-num="13" data-name="Алюминий" data-sym="Al" style="grid-column: 13; grid-row: 3;">
+                <div class="num">13</div><div class="symbol">Al</div><div class="name">Алюминий</div><div class="mass">26.982</div>
+                <div class="shells-list">2<br>8<br>3</div><div class="orbit-container" data-shells="2,8,3"></div>
+            </div>
+            <!-- Кремний -->
+            <div class="element p-element" data-num="14" data-name="Кремний" data-sym="Si" style="grid-column: 14; grid-row: 3;">
+                <div class="num">14</div><div class="symbol">Si</div><div class="name">Кремний</div><div class="mass">28.085</div>
+                <div class="shells-list">2<br>8<br>4</div><div class="orbit-container" data-shells="2,8,4"></div>
+            </div>
+            <!-- Фосфор -->
+            <div class="element p-element" data-num="15" data-name="Фосфор" data-sym="P" style="grid-column: 15; grid-row: 3;">
+                <div class="num">15</div><div class="symbol">P</div><div class="name">Фосфор</div><div class="mass">30.974</div>
+                <div class="shells-list">2<br>8<br>5</div><div class="orbit-container" data-shells="2,8,5"></div>
+            </div>
+            <!-- Сера -->
+            <div class="element p-element" data-num="16" data-name="Сера" data-sym="S" style="grid-column: 16; grid-row: 3;">
+                <div class="num">16</div><div class="symbol">S</div><div class="name">Сера</div><div class="mass">32.06</div>
+                <div class="shells-list">2<br>8<br>6</div><div class="orbit-container" data-shells="2,8,6"></div>
+            </div>
+            <!-- Хлор -->
+            <div class="element p-element" data-num="17" data-name="Хлор" data-sym="Cl" style="grid-column: 17; grid-row: 3;">
+                <div class="num">17</div><div class="symbol">Cl</div><div class="name">Хлор</div><div class="mass">35.45</div>
+                <div class="shells-list">2<br>8<br>7</div><div class="orbit-container" data-shells="2,8,7"></div>
+            </div>
+            <!-- Аргон -->
+            <div class="element p-element" data-num="18" data-name="Аргон" data-sym="Ar" style="grid-column: 18; grid-row: 3;">
+                <div class="num">18</div><div class="symbol">Ar</div><div class="name">Аргон</div><div class="mass">39.948</div>
+                <div class="shells-list">2<br>8<br>8</div><div class="orbit-container" data-shells="2,8,8"></div>
+            </div>
+            <!-- Период 4 -->
+            <div class="element s-element" data-num="19" data-name="Калий" data-sym="K" style="grid-column: 1; grid-row: 4;">
+                <div class="num">19</div><div class="symbol">K</div><div class="name">Калий</div><div class="mass">39.098</div>
+                <div class="shells-list">2<br>8<br>8<br>1</div><div class="orbit-container" data-shells="2,8,8,1"></div>
+            </div>
+            <div class="element s-element" data-num="20" data-name="Кальций" data-sym="Ca" style="grid-column: 2; grid-row: 4;">
+                <div class="num">20</div><div class="symbol">Ca</div><div class="name">Кальций</div><div class="mass">40.078</div>
+                <div class="shells-list">2<br>8<br>8<br>2</div><div class="orbit-container" data-shells="2,8,8,2"></div>
+            </div>
+            <div class="element d-element" data-num="21" data-name="Скандий" data-sym="Sc" style="grid-column: 3; grid-row: 4;">
+                <div class="num">21</div><div class="symbol">Sc</div><div class="name">Скандий</div><div class="mass">44.956</div>
+                <div class="shells-list">2<br>8<br>9<br>2</div><div class="orbit-container" data-shells="2,8,9,2"></div>
+            </div>
+            <div class="element d-element" data-num="22" data-name="Титан" data-sym="Ti" style="grid-column: 4; grid-row: 4;">
+                <div class="num">22</div><div class="symbol">Ti</div><div class="name">Титан</div><div class="mass">47.867</div>
+                <div class="shells-list">2<br>8<br>10<br>2</div><div class="orbit-container" data-shells="2,8,10,2"></div>
+            </div>
+            <div class="element d-element" data-num="23" data-name="Ванадий" data-sym="V" style="grid-column: 5; grid-row: 4;">
+                <div class="num">23</div><div class="symbol">V</div><div class="name">Ванадий</div><div class="mass">50.942</div>
+                <div class="shells-list">2<br>8<br>11<br>2</div><div class="orbit-container" data-shells="2,8,11,2"></div>
+            </div>
+            <div class="element d-element" data-num="24" data-name="Хром" data-sym="Cr" style="grid-column: 6; grid-row: 4;">
+                <div class="num">24</div><div class="symbol">Cr</div><div class="name">Хром</div><div class="mass">51.996</div>
+                <div class="shells-list">2<br>8<br>13<br>1</div><div class="orbit-container" data-shells="2,8,13,1"></div>
+            </div>
+            <div class="element d-element" data-num="25" data-name="Марганец" data-sym="Mn" style="grid-column: 7; grid-row: 4;">
+                <div class="num">25</div><div class="symbol">Mn</div><div class="name">Марганец</div><div class="mass">54.938</div>
+                <div class="shells-list">2<br>8<br>13<br>2</div><div class="orbit-container" data-shells="2,8,13,2"></div>
+            </div>
+            <div class="element d-element" data-num="26" data-name="Железо" data-sym="Fe" style="grid-column: 8; grid-row: 4;">
+                <div class="num">26</div><div class="symbol">Fe</div><div class="name">Железо</div><div class="mass">55.845</div>
+                <div class="shells-list">2<br>8<br>14<br>2</div><div class="orbit-container" data-shells="2,8,14,2"></div>
+            </div>
+            <div class="element d-element" data-num="27" data-name="Кобальт" data-sym="Co" style="grid-column: 9; grid-row: 4;">
+                <div class="num">27</div><div class="symbol">Co</div><div class="name">Кобальт</div><div class="mass">58.933</div>
+                <div class="shells-list">2<br>8<br>15<br>2</div><div class="orbit-container" data-shells="2,8,15,2"></div>
+            </div>
+            <div class="element d-element" data-num="28" data-name="Никель" data-sym="Ni" style="grid-column: 10; grid-row: 4;">
+                <div class="num">28</div><div class="symbol">Ni</div><div class="name">Никель</div><div class="mass">58.693</div>
+                <div class="shells-list">2<br>8<br>16<br>2</div><div class="orbit-container" data-shells="2,8,16,2"></div>
+            </div>
+            <div class="element d-element" data-num="29" data-name="Медь" data-sym="Cu" style="grid-column: 11; grid-row: 4;">
+                <div class="num">29</div><div class="symbol">Cu</div><div class="name">Медь</div><div class="mass">63.546</div>
+                <div class="shells-list">2<br>8<br>18<br>1</div><div class="orbit-container" data-shells="2,8,18,1"></div>
+            </div>
+            <div class="element d-element" data-num="30" data-name="Цинк" data-sym="Zn" style="grid-column: 12; grid-row: 4;">
+                <div class="num">30</div><div class="symbol">Zn</div><div class="name">Цинк</div><div class="mass">65.38</div>
+                <div class="shells-list">2<br>8<br>18<br>2</div><div class="orbit-container" data-shells="2,8,18,2"></div>
+            </div>
+            <div class="element p-element" data-num="31" data-name="Галлий" data-sym="Ga" style="grid-column: 13; grid-row: 4;">
+                <div class="num">31</div><div class="symbol">Ga</div><div class="name">Галлий</div><div class="mass">69.723</div>
+                <div class="shells-list">2<br>8<br>18<br>3</div><div class="orbit-container" data-shells="2,8,18,3"></div>
+            </div>
+            <div class="element p-element" data-num="32" data-name="Германий" data-sym="Ge" style="grid-column: 14; grid-row: 4;">
+                <div class="num">32</div><div class="symbol">Ge</div><div class="name">Германий</div><div class="mass">72.630</div>
+                <div class="shells-list">2<br>8<br>18<br>4</div><div class="orbit-container" data-shells="2,8,18,4"></div>
+            </div>
+            <div class="element p-element" data-num="33" data-name="Мышьяк" data-sym="As" style="grid-column: 15; grid-row: 4;">
+                <div class="num">33</div><div class="symbol">As</div><div class="name">Мышьяк</div><div class="mass">74.922</div>
+                <div class="shells-list">2<br>8<br>18<br>5</div><div class="orbit-container" data-shells="2,8,18,5"></div>
+            </div>
+            <div class="element p-element" data-num="34" data-name="Селен" data-sym="Se" style="grid-column: 16; grid-row: 4;">
+                <div class="num">34</div><div class="symbol">Se</div><div class="name">Селен</div><div class="mass">78.971</div>
+                <div class="shells-list">2<br>8<br>18<br>6</div><div class="orbit-container" data-shells="2,8,18,6"></div>
+            </div>
+            <div class="element p-element" data-num="35" data-name="Бром" data-sym="Br" style="grid-column: 17; grid-row: 4;">
+                <div class="num">35</div><div class="symbol">Br</div><div class="name">Бром</div><div class="mass">79.904</div>
+                <div class="shells-list">2<br>8<br>18<br>7</div><div class="orbit-container" data-shells="2,8,18,7"></div>
+            </div>
+            <div class="element p-element" data-num="36" data-name="Криптон" data-sym="Kr" style="grid-column: 18; grid-row: 4;">
+                <div class="num">36</div><div class="symbol">Kr</div><div class="name">Криптон</div><div class="mass">83.798</div>
+                <div class="shells-list">2<br>8<br>18<br>8</div><div class="orbit-container" data-shells="2,8,18,8"></div>
+            </div>
 
-        <div class="cell alkali" data-name="Литий" data-sym="Li" data-num="3"><div class="num">3</div><div class="sym">Li</div><div class="name">Литий</div><div class="weight">6.94</div></div>
-        <div class="cell alkaline" data-name="Бериллий" data-sym="Be" data-num="4"><div class="num">4</div><div class="sym">Be</div><div class="name">Бериллий</div><div class="weight">9.0122</div></div>
-        <div class="empty-cell" style="grid-column: span 10;"></div>
-        <div class="cell metalloid" data-name="Бор" data-sym="B" data-num="5"><div class="num">5</div><div class="sym">B</div><div class="name">Бор</div><div class="weight">10.81</div></div>
-        <div class="cell nonmetal" data-name="Углерод" data-sym="C" data-num="6"><div class="num">6</div><div class="sym">C</div><div class="name">Углерод</div><div class="weight">12.011</div></div>
-        <div class="cell nonmetal" data-name="Азот" data-sym="N" data-num="7"><div class="num">7</div><div class="sym">N</div><div class="name">Азот</div><div class="weight">14.007</div></div>
-        <div class="cell nonmetal" data-name="Кислород" data-sym="O" data-num="8"><div class="num">8</div><div class="sym">O</div><div class="name">Кислород</div><div class="weight">15.999</div></div>
-        <div class="cell halogen" data-name="Фтор" data-sym="F" data-num="9"><div class="num">9</div><div class="sym">F</div><div class="name">Фтор</div><div class="weight">18.998</div></div>
-        <div class="cell noble" data-name="Неон" data-sym="Ne" data-num="10"><div class="num">10</div><div class="sym">Ne</div><div class="name">Неон</div><div class="weight">20.180</div></div>
+            <!-- Период 5 -->
+            <div class="element s-element" data-num="37" data-name="Рубидий" data-sym="Rb" style="grid-column: 1; grid-row: 5;">
+                <div class="num">37</div><div class="symbol">Rb</div><div class="name">Рубидий</div><div class="mass">85.468</div>
+                <div class="shells-list">2<br>8<br>18<br>8<br>1</div><div class="orbit-container" data-shells="2,8,18,8,1"></div>
+            </div>
+            <div class="element s-element" data-num="38" data-name="Стронций" data-sym="Sr" style="grid-column: 2; grid-row: 5;">
+                <div class="num">38</div><div class="symbol">Sr</div><div class="name">Стронций</div><div class="mass">87.62</div>
+                <div class="shells-list">2<br>8<br>18<br>8<br>2</div><div class="orbit-container" data-shells="2,8,18,8,2"></div>
+            </div>
+            <div class="element d-element" data-num="39" data-name="Иттрий" data-sym="Y" style="grid-column: 3; grid-row: 5;">
+                <div class="num">39</div><div class="symbol">Y</div><div class="name">Иттрий</div><div class="mass">88.906</div>
+                <div class="shells-list">2<br>8<br>18<br>9<br>2</div><div class="orbit-container" data-shells="2,8,18,9,2"></div>
+            </div>
+            <div class="element d-element" data-num="40" data-name="Цирконий" data-sym="Zr" style="grid-column: 4; grid-row: 5;">
+                <div class="num">40</div><div class="symbol">Zr</div><div class="name">Цирконий</div><div class="mass">91.224</div>
+                <div class="shells-list">2<br>8<br>18<br>10<br>2</div><div class="orbit-container" data-shells="2,8,18,10,2"></div>
+            </div>
+            <div class="element d-element" data-num="41" data-name="Ниобий" data-sym="Nb" style="grid-column: 5; grid-row: 5;">
+                <div class="num">41</div><div class="symbol">Nb</div><div class="name">Ниобий</div><div class="mass">92.906</div>
+                <div class="shells-list">2<br>8<br>18<br>12<br>1</div><div class="orbit-container" data-shells="2,8,18,12,1"></div>
+            </div>
+            <div class="element d-element" data-num="42" data-name="Молибден" data-sym="Mo" style="grid-column: 6; grid-row: 5;">
+                <div class="num">42</div><div class="symbol">Mo</div><div class="name">Молибден</div><div class="mass">95.95</div>
+                <div class="shells-list">2<br>8<br>18<br>13<br>1</div><div class="orbit-container" data-shells="2,8,18,13,1"></div>
+            </div>
+            <div class="element d-element" data-num="43" data-name="Технеций" data-sym="Tc" style="grid-column: 7; grid-row: 5;">
+                <div class="num">43</div><div class="symbol">Tc</div><div class="name">Технеций</div><div class="mass">(98)</div>
+                <div class="shells-list">2<br>8<br>18<br>13<br>2</div><div class="orbit-container" data-shells="2,8,18,13,2"></div>
+            </div>
+            <div class="element d-element" data-num="44" data-name="Рутений" data-sym="Ru" style="grid-column: 8; grid-row: 5;">
+                <div class="num">44</div><div class="symbol">Ru</div><div class="name">Рутений</div><div class="mass">101.07</div>
+                <div class="shells-list">2<br>8<br>18<br>15<br>1</div><div class="orbit-container" data-shells="2,8,18,15,1"></div>
+            </div>
+            <div class="element d-element" data-num="45" data-name="Родий" data-sym="Rh" style="grid-column: 9; grid-row: 5;">
+                <div class="num">45</div><div class="symbol">Rh</div><div class="name">Родий</div><div class="mass">102.91</div>
+                <div class="shells-list">2<br>8<br>18<br>16<br>1</div><div class="orbit-container" data-shells="2,8,18,16,1"></div>
+            </div>
+            <div class="element d-element" data-num="46" data-name="Палладий" data-sym="Pd" style="grid-column: 10; grid-row: 5;">
+                <div class="num">46</div><div class="symbol">Pd</div><div class="name">Палладий</div><div class="mass">106.42</div>
+                <div class="shells-list">2<br>8<br>18<br>18</div><div class="orbit-container" data-shells="2,8,18,18"></div>
+            </div>
+            <div class="element d-element" data-num="47" data-name="Серебро" data-sym="Ag" style="grid-column: 11; grid-row: 5;">
+                <div class="num">47</div><div class="symbol">Ag</div><div class="name">Серебро</div><div class="mass">107.87</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>1</div><div class="orbit-container" data-shells="2,8,18,18,1"></div>
+            </div>
+            <div class="element d-element" data-num="48" data-name="Кадмий" data-sym="Cd" style="grid-column: 12; grid-row: 5;">
+                <div class="num">48</div><div class="symbol">Cd</div><div class="name">Кадмий</div><div class="mass">112.41</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>2</div><div class="orbit-container" data-shells="2,8,18,18,2"></div>
+            </div>
+            <div class="element p-element" data-num="49" data-name="Индий" data-sym="In" style="grid-column: 13; grid-row: 5;">
+                <div class="num">49</div><div class="symbol">In</div><div class="name">Индий</div><div class="mass">114.82</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>3</div><div class="orbit-container" data-shells="2,8,18,18,3"></div>
+            </div>
+            <div class="element p-element" data-num="50" data-name="Олово" data-sym="Sn" style="grid-column: 14; grid-row: 5;">
+                <div class="num">50</div><div class="symbol">Sn</div><div class="name">Олово</div><div class="mass">118.71</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>4</div><div class="orbit-container" data-shells="2,8,18,18,4"></div>
+            </div>
+            <div class="element p-element" data-num="51" data-name="Сурьма" data-sym="Sb" style="grid-column: 15; grid-row: 5;">
+                <div class="num">51</div><div class="symbol">Sb</div><div class="name">Сурьма</div><div class="mass">121.76</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>5</div><div class="orbit-container" data-shells="2,8,18,18,5"></div>
+            </div>
+            <div class="element p-element" data-num="52" data-name="Теллур" data-sym="Te" style="grid-column: 16; grid-row: 5;">
+                <div class="num">52</div><div class="symbol">Te</div><div class="name">Теллур</div><div class="mass">127.60</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>6</div><div class="orbit-container" data-shells="2,8,18,18,6"></div>
+            </div>
+            <div class="element p-element" data-num="53" data-name="Иод" data-sym="I" style="grid-column: 17; grid-row: 5;">
+                <div class="num">53</div><div class="symbol">I</div><div class="name">Иод</div><div class="mass">126.90</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>7</div><div class="orbit-container" data-shells="2,8,18,18,7"></div>
+            </div>
+            <div class="element p-element" data-num="54" data-name="Ксенон" data-sym="Xe" style="grid-column: 18; grid-row: 5;">
+                <div class="num">54</div><div class="symbol">Xe</div><div class="name">Ксенон</div><div class="mass">131.29</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>8</div><div class="orbit-container" data-shells="2,8,18,18,8"></div>
+            </div>
 
-        <div class="cell alkali" data-name="Натрий" data-sym="Na" data-num="11"><div class="num">11</div><div class="sym">Na</div><div class="name">Натрий</div><div class="weight">22.990</div></div>
-        <div class="cell alkaline" data-name="Магний" data-sym="Mg" data-num="12"><div class="num">12</div><div class="sym">Mg</div><div class="name">Магний</div><div class="weight">24.305</div></div>
-        <div class="empty-cell" style="grid-column: span 10;"></div>
-        <div class="cell post-transition" data-name="Алюминий" data-sym="Al" data-num="13"><div class="num">13</div><div class="sym">Al</div><div class="name">Алюминий</div><div class="weight">26.982</div></div>
-        <div class="cell metalloid" data-name="Кремний" data-sym="Si" data-num="14"><div class="num">14</div><div class="sym">Si</div><div class="name">Кремний</div><div class="weight">28.085</div></div>
-        <div class="cell nonmetal" data-name="Фосфор" data-sym="P" data-num="15"><div class="num">15</div><div class="sym">P</div><div class="name">Фосфор</div><div class="weight">30.974</div></div>
-        <div class="cell nonmetal" data-name="Сера" data-sym="S" data-num="16"><div class="num">16</div><div class="sym">S</div><div class="name">Сера</div><div class="weight">32.06</div></div>
-        <div class="cell halogen" data-name="Хлор" data-sym="Cl" data-num="17"><div class="num">17</div><div class="sym">Cl</div><div class="name">Хлор</div><div class="weight">35.45</div></div>
-        <div class="cell noble" data-name="Аргон" data-sym="Ar" data-num="18"><div class="num">18</div><div class="sym">Ar</div><div class="name">Аргон</div><div class="weight">39.948</div></div>
+            <!-- Период 6 -->
+            <div class="element s-element" data-num="55" data-name="Цезий" data-sym="Cs" style="grid-column: 1; grid-row: 6;">
+                <div class="num">55</div><div class="symbol">Cs</div><div class="name">Цезий</div><div class="mass">132.91</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>8<br>1</div><div class="orbit-container" data-shells="2,8,18,18,8,1"></div>
+            </div>
+            <div class="element s-element" data-num="56" data-name="Барий" data-sym="Ba" style="grid-column: 2; grid-row: 6;">
+                <div class="num">56</div><div class="symbol">Ba</div><div class="name">Барий</div><div class="mass">137.33</div>
+                <div class="shells-list">2<br>8<br>18<br>18<br>8<br>2</div><div class="orbit-container" data-shells="2,8,18,18,8,2"></div>
+            </div>
+            <!-- Лантаноиды заглушка -->
+            <div class="element f-element" data-num="57-71" data-name="Лантаноиды" data-sym="La-Lu" style="grid-column: 3; grid-row: 6;">
+                <div class="num">57-71</div><div class="symbol">La-Lu</div><div class="name">Лантан.</div><div class="mass"></div>
+            </div>
+            <div class="element d-element" data-num="72" data-name="Гафний" data-sym="Hf" style="grid-column: 4; grid-row: 6;">
+                <div class="num">72</div><div class="symbol">Hf</div><div class="name">Гафний</div><div class="mass">178.49</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>10<br>2</div><div class="orbit-container" data-shells="2,8,18,32,10,2"></div>
+            </div>
+            <div class="element d-element" data-num="73" data-name="Тантал" data-sym="Ta" style="grid-column: 5; grid-row: 6;">
+                <div class="num">73</div><div class="symbol">Ta</div><div class="name">Тантал</div><div class="mass">180.95</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>11<br>2</div><div class="orbit-container" data-shells="2,8,18,32,11,2"></div>
+            </div>
+            <div class="element d-element" data-num="74" data-name="Вольфрам" data-sym="W" style="grid-column: 6; grid-row: 6;">
+                <div class="num">74</div><div class="symbol">W</div><div class="name">Вольфрам</div><div class="mass">183.84</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>12<br>2</div><div class="orbit-container" data-shells="2,8,18,32,12,2"></div>
+            </div>
+            <div class="element d-element" data-num="75" data-name="Рений" data-sym="Re" style="grid-column: 7; grid-row: 6;">
+                <div class="num">75</div><div class="symbol">Re</div><div class="name">Рений</div><div class="mass">186.21</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>13<br>2</div><div class="orbit-container" data-shells="2,8,18,32,13,2"></div>
+            </div>
+            <div class="element d-element" data-num="76" data-name="Осмий" data-sym="Os" style="grid-column: 8; grid-row: 6;">
+                <div class="num">76</div><div class="symbol">Os</div><div class="name">Осмий</div><div class="mass">190.23</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>14<br>2</div><div class="orbit-container" data-shells="2,8,18,32,14,2"></div>
+            </div>
+            <div class="element d-element" data-num="77" data-name="Иридий" data-sym="Ir" style="grid-column: 9; grid-row: 6;">
+                <div class="num">77</div><div class="symbol">Ir</div><div class="name">Иридий</div><div class="mass">192.22</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>15<br>2</div><div class="orbit-container" data-shells="2,8,18,32,15,2"></div>
+            </div>
+            <div class="element d-element" data-num="78" data-name="Платина" data-sym="Pt" style="grid-column: 10; grid-row: 6;">
+                <div class="num">78</div><div class="symbol">Pt</div><div class="name">Платина</div><div class="mass">195.08</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>17<br>1</div><div class="orbit-container" data-shells="2,8,18,32,17,1"></div>
+            </div>
+            <div class="element d-element" data-num="79" data-name="Золото" data-sym="Au" style="grid-column: 11; grid-row: 6;">
+                <div class="num">79</div><div class="symbol">Au</div><div class="name">Золото</div><div class="mass">196.97</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>1</div><div class="orbit-container" data-shells="2,8,18,32,18,1"></div>
+            </div>
+            <div class="element d-element" data-num="80" data-name="Ртуть" data-sym="Hg" style="grid-column: 12; grid-row: 6;">
+                <div class="num">80</div><div class="symbol">Hg</div><div class="name">Ртуть</div><div class="mass">200.59</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>2</div><div class="orbit-container" data-shells="2,8,18,32,18,2"></div>
+            </div>
+            <div class="element p-element" data-num="81" data-name="Таллий" data-sym="Tl" style="grid-column: 13; grid-row: 6;">
+                <div class="num">81</div><div class="symbol">Tl</div><div class="name">Таллий</div><div class="mass">204.38</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>3</div><div class="orbit-container" data-shells="2,8,18,32,18,3"></div>
+            </div>
+            <div class="element p-element" data-num="82" data-name="Свинец" data-sym="Pb" style="grid-column: 14; grid-row: 6;">
+                <div class="num">82</div><div class="symbol">Pb</div><div class="name">Свинец</div><div class="mass">207.2</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>4</div><div class="orbit-container" data-shells="2,8,18,32,18,4"></div>
+            </div>
+            <div class="element p-element" data-num="83" data-name="Висмут" data-sym="Bi" style="grid-column: 15; grid-row: 6;">
+                <div class="num">83</div><div class="symbol">Bi</div><div class="name">Висмут</div><div class="mass">208.98</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>5</div><div class="orbit-container" data-shells="2,8,18,32,18,5"></div>
+            </div>
+            <div class="element p-element" data-num="84" data-name="Полоний" data-sym="Po" style="grid-column: 16; grid-row: 6;">
+                <div class="num">84</div><div class="symbol">Po</div><div class="name">Полоний</div><div class="mass">(209)</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>6</div><div class="orbit-container" data-shells="2,8,18,32,18,6"></div>
+            </div>
+            <div class="element p-element" data-num="85" data-name="Астат" data-sym="At" style="grid-column: 17; grid-row: 6;">
+                <div class="num">85</div><div class="symbol">At</div><div class="name">Астат</div><div class="mass">(210)</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>7</div><div class="orbit-container" data-shells="2,8,18,32,18,7"></div>
+            </div>
+            <div class="element p-element" data-num="86" data-name="Радон" data-sym="Rn" style="grid-column: 18; grid-row: 6;">
+                <div class="num">86</div><div class="symbol">Rn</div><div class="name">Радон</div><div class="mass">(222)</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>8</div><div class="orbit-container" data-shells="2,8,18,32,18,8"></div>
+            </div>
 
-        <div class="cell alkali" data-name="Калий" data-sym="K" data-num="19"><div class="num">19</div><div class="sym">K</div><div class="name">Калий</div><div class="weight">39.098</div></div>
-        <div class="cell alkaline" data-name="Кальций" data-sym="Ca" data-num="20"><div class="num">20</div><div class="sym">Ca</div><div class="name">Кальций</div><div class="weight">40.078</div></div>
-        <div class="cell transition" data-name="Скандий" data-sym="Sc" data-num="21"><div class="num">21</div><div class="sym">Sc</div><div class="name">Скандий</div><div class="weight">44.956</div></div>
-        <div class="cell transition" data-name="Титан" data-sym="Ti" data-num="22"><div class="num">22</div><div class="sym">Ti</div><div class="name">Титан</div><div class="weight">47.867</div></div>
-        <div class="cell transition" data-name="Ванадий" data-sym="V" data-num="23"><div class="num">23</div><div class="sym">V</div><div class="name">Ванадий</div><div class="weight">50.942</div></div>
-        <div class="cell transition" data-name="Хром" data-sym="Cr" data-num="24"><div class="num">24</div><div class="sym">Cr</div><div class="name">Хром</div><div class="weight">51.996</div></div>
-        <div class="cell transition" data-name="Марганец" data-sym="Mn" data-num="25"><div class="num">25</div><div class="sym">Mn</div><div class="name">Марганец</div><div class="weight">54.938</div></div>
-        <div class="cell transition" data-name="Железо" data-sym="Fe" data-num="26"><div class="num">26</div><div class="sym">Fe</div><div class="name">Железо</div><div class="weight">55.845</div></div>
-        <div class="cell transition" data-name="Кобальт" data-sym="Co" data-num="27"><div class="num">27</div><div class="sym">Co</div><div class="name">Кобальт</div><div class="weight">58.933</div></div>
-        <div class="cell transition" data-name="Никель" data-sym="Ni" data-num="28"><div class="num">28</div><div class="sym">Ni</div><div class="name">Никель</div><div class="weight">58.693</div></div>
-        <div class="cell transition" data-name="Медь" data-sym="Cu" data-num="29"><div class="num">29</div><div class="sym">Cu</div><div class="name">Медь</div><div class="weight">63.546</div></div>
-        <div class="cell transition" data-name="Цинк" data-sym="Zn" data-num="30"><div class="num">30</div><div class="sym">Zn</div><div class="name">Цинк</div><div class="weight">65.38</div></div>
-        <div class="cell post-transition" data-name="Галлий" data-sym="Ga" data-num="31"><div class="num">31</div><div class="sym">Ga</div><div class="name">Галлий</div><div class="weight">69.723</div></div>
-        <div class="cell metalloid" data-name="Германий" data-sym="Ge" data-num="32"><div class="num">32</div><div class="sym">Ge</div><div class="name">Германий</div><div class="weight">72.630</div></div>
-        <div class="cell metalloid" data-name="Мышьяк" data-sym="As" data-num="33"><div class="num">33</div><div class="sym">As</div><div class="name">Мышьяк</div><div class="weight">74.922</div></div>
-        <div class="cell nonmetal" data-name="Селен" data-sym="Se" data-num="34"><div class="num">34</div><div class="sym">Se</div><div class="name">Селен</div><div class="weight">78.971</div></div>
-        <div class="cell halogen" data-name="Бром" data-sym="Br" data-num="35"><div class="num">35</div><div class="sym">Br</div><div class="name">Бром</div><div class="weight">79.904</div></div>
-        <div class="cell noble" data-name="Криптон" data-sym="Kr" data-num="36"><div class="num">36</div><div class="sym">Kr</div><div class="name">Криптон</div><div class="weight">83.798</div></div>
-        <!-- Элементы таблицы (Период 5 и начало Периода 6) -->
-        <div class="cell alkali" data-name="Рубидий" data-sym="Rb" data-num="37"><div class="num">37</div><div class="sym">Rb</div><div class="name">Рубидий</div><div class="weight">85.468</div></div>
-        <div class="cell alkaline" data-name="Стронций" data-sym="Sr" data-num="38"><div class="num">38</div><div class="sym">Sr</div><div class="name">Стронций</div><div class="weight">87.62</div></div>
-        <div class="cell transition" data-name="Иттрий" data-sym="Y" data-num="39"><div class="num">39</div><div class="sym">Y</div><div class="name">Иттрий</div><div class="weight">88.906</div></div>
-        <div class="cell transition" data-name="Цирконий" data-sym="Zr" data-num="40"><div class="num">40</div><div class="sym">Zr</div><div class="name">Цирконий</div><div class="weight">91.224</div></div>
-        <div class="cell transition" data-name="Ниобий" data-sym="Nb" data-num="41"><div class="num">41</div><div class="sym">Nb</div><div class="name">Ниобий</div><div class="weight">92.906</div></div>
-        <div class="cell transition" data-name="Молибден" data-sym="Mo" data-num="42"><div class="num">42</div><div class="sym">Mo</div><div class="name">Молибден</div><div class="weight">95.95</div></div>
-        <div class="cell transition" data-name="Технеций" data-sym="Tc" data-num="43"><div class="num">43</div><div class="sym">Tc</div><div class="name">Технеций</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Рутений" data-sym="Ru" data-num="44"><div class="num">44</div><div class="sym">Ru</div><div class="name">Рутений</div><div class="weight">101.07</div></div>
-        <div class="cell transition" data-name="Родий" data-sym="Rh" data-num="45"><div class="num">45</div><div class="sym">Rh</div><div class="name">Родий</div><div class="weight">102.91</div></div>
-        <div class="cell transition" data-name="Палладий" data-sym="Pd" data-num="46"><div class="num">46</div><div class="sym">Pd</div><div class="name">Палладий</div><div class="weight">106.42</div></div>
-        <div class="cell transition" data-name="Серебро" data-sym="Ag" data-num="47"><div class="num">47</div><div class="sym">Ag</div><div class="name">Серебро</div><div class="weight">107.87</div></div>
-        <div class="cell transition" data-name="Кадмий" data-sym="Cd" data-num="48"><div class="num">48</div><div class="sym">Cd</div><div class="name">Кадмий</div><div class="weight">112.41</div></div>
-        <div class="cell post-transition" data-name="Индий" data-sym="In" data-num="49"><div class="num">49</div><div class="sym">In</div><div class="name">Индий</div><div class="weight">114.82</div></div>
-        <div class="cell post-transition" data-name="Олово" data-sym="Sn" data-num="50"><div class="num">50</div><div class="sym">Sn</div><div class="name">Олово</div><div class="weight">118.71</div></div>
-        <div class="cell metalloid" data-name="Сурьма" data-sym="Sb" data-num="51"><div class="num">51</div><div class="sym">Sb</div><div class="name">Сурьма</div><div class="weight">121.76</div></div>
-        <div class="cell metalloid" data-name="Теллур" data-sym="Te" data-num="52"><div class="num">52</div><div class="sym">Te</div><div class="name">Теллур</div><div class="weight">127.60</div></div>
-        <div class="cell halogen" data-name="Иод" data-sym="I" data-num="53"><div class="num">53</div><div class="sym">I</div><div class="name">Иод</div><div class="weight">126.90</div></div>
-        <div class="cell noble" data-name="Ксенон" data-sym="Xe" data-num="54"><div class="num">54</div><div class="sym">Xe</div><div class="name">Ксенон</div><div class="weight">131.29</div></div>
+            <!-- Период 7 -->
+            <div class="element s-element" data-num="87" data-name="Франций" data-sym="Fr" style="grid-column: 1; grid-row: 7;">
+                <div class="num">87</div><div class="symbol">Fr</div><div class="name">Франций</div><div class="mass">(223)</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>8<br>1</div><div class="orbit-container" data-shells="2,8,18,32,18,8,1"></div>
+            </div>
+            <div class="element s-element" data-num="88" data-name="Радий" data-sym="Ra" style="grid-column: 2; grid-row: 7;">
+                <div class="num">88</div><div class="symbol">Ra</div><div class="name">Радий</div><div class="mass">(226)</div>
+                <div class="shells-list">2<br>8<br>18<br>32<br>18<br>8<br>2</div><div class="orbit-container" data-shells="2,8,18,32,18,8,2"></div>
+            </div>
+            <!-- Актиноиды заглушка -->
+            <div class="element f-element" data-num="89-103" data-name="Актиноиды" data-sym="Ac-Lr" style="grid-column: 3; grid-row: 7;">
+                <div class="num">89-103</div><div class="symbol">Ac-Lr</div><div class="name">Актин.</div><div class="mass"></div>
+            </div>
+            <div class="element d-element" data-num="104" data-name="Резерфордий" data-sym="Rf" style="grid-column: 4; grid-row: 7;">
+                <div class="num">104</div><div class="symbol">Rf</div><div class="name">Резерфордий</div><div class="mass">(267)</div>
+            </div>
+            <div class="element d-element" data-num="105" data-name="Дубний" data-sym="Db" style="grid-column: 5; grid-row: 7;">
+                <div class="num">105</div><div class="symbol">Db</div><div class="name">Дубний</div><div class="mass">(268)</div>
+            </div>
+            <div class="element d-element" data-num="106" data-name="Сиборгий" data-sym="Sg" style="grid-column: 6; grid-row: 7;">
+                <div class="num">106</div><div class="symbol">Sg</div><div class="name">Сиборгий</div><div class="mass">(269)</div>
+            </div>
+            <div class="element d-element" data-num="107" data-name="Борий" data-sym="Bh" style="grid-column: 7; grid-row: 7;">
+                <div class="num">107</div><div class="symbol">Bh</div><div class="name">Борий</div><div class="mass">(270)</div>
+            </div>
+            <div class="element d-element" data-num="108" data-name="Хассий" data-sym="Hs" style="grid-column: 8; grid-row: 7;">
+                <div class="num">108</div><div class="symbol">Hs</div><div class="name">Хассий</div><div class="mass">(269)</div>
+            </div>
+            <div class="element d-element" data-num="109" data-name="Мейтнерий" data-sym="Mt" style="grid-column: 9; grid-row: 7;">
+                <div class="num">109</div><div class="symbol">Mt</div><div class="name">Мейтнерий</div><div class="mass">(278)</div>
+            </div>
+            <div class="element d-element" data-num="110" data-name="Дармштадтий" data-sym="Ds" style="grid-column: 10; grid-row: 7;">
+                <div class="num">110</div><div class="symbol">Ds</div><div class="name">Дармштадтий</div><div class="mass">(281)</div>
+            </div>
+            <div class="element d-element" data-num="111" data-name="Рентгений" data-sym="Rg" style="grid-column: 11; grid-row: 7;">
+                <div class="num">111</div><div class="symbol">Rg</div><div class="name">Рентгений</div><div class="mass">(282)</div>
+            </div>
+            <div class="element d-element" data-num="112" data-name="Коперниций" data-sym="Cn" style="grid-column: 12; grid-row: 7;">
+                <div class="num">112</div><div class="symbol">Cn</div><div class="name">Коперниций</div><div class="mass">(285)</div>
+            </div>
+            <div class="element post-transition p-element" data-num="113" data-name="Нихоний" data-sym="Nh" style="grid-column: 13; grid-row: 7;">
+                <div class="num">113</div><div class="symbol">Nh</div><div class="name">Нихоний</div><div class="mass">(286)</div>
+            </div>
+            <div class="element post-transition p-element" data-num="114" data-name="Флеровий" data-sym="Fl" style="grid-column: 14; grid-row: 7;">
+                <div class="num">114</div><div class="symbol">Fl</div><div class="name">Флеровий</div><div class="mass">(289)</div>
+            </div>
+            <div class="element post-transition p-element" data-num="115" data-name="Московий" data-sym="Mc" style="grid-column: 15; grid-row: 7;">
+                <div class="num">115</div><div class="symbol">Mc</div><div class="name">Московий</div><div class="mass">(290)</div>
+            </div>
+            <div class="element post-transition p-element" data-num="116" data-name="Ливерморий" data-sym="Lv" style="grid-column: 16; grid-row: 7;">
+                <div class="num">116</div><div class="symbol">Lv</div><div class="name">Ливерморий</div><div class="mass">(293)</div>
+            </div>
+            <div class="element halogen p-element" data-num="117" data-name="Теннессин" data-sym="Ts" style="grid-column: 17; grid-row: 7;">
+                <div class="num">117</div><div class="symbol">Ts</div><div class="name">Теннессин</div><div class="mass">(294)</div>
+            </div>
+            <div class="element noble p-element" data-num="118" data-name="Оганесон" data-sym="Og" style="grid-column: 18; grid-row: 7;">
+                <div class="num">118</div><div class="symbol">Og</div><div class="name">Оганесон</div><div class="mass">(294)</div>
+            </div>
 
-        <div class="cell alkali" data-name="Цезий" data-sym="Cs" data-num="55"><div class="num">55</div><div class="sym">Cs</div><div class="name">Цезий</div><div class="weight">132.91</div></div>
-        <div class="cell alkaline" data-name="Барий" data-sym="Ba" data-num="56"><div class="num">56</div><div class="sym">Ba</div><div class="name">Барий</div><div class="weight">137.33</div></div>
-        <!-- Элементы таблицы (Продолжение Периода 6 и Период 7) -->
-        <div class="cell lanthanide" data-name="Лантаноиды" data-sym="57-71" data-num="57-71"><div class="num">57-71</div><div class="sym">La-Lu</div><div class="name">Лантан.</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Гафний" data-sym="Hf" data-num="72"><div class="num">72</div><div class="sym">Hf</div><div class="name">Гафний</div><div class="weight">178.49</div></div>
-        <div class="cell transition" data-name="Тантал" data-sym="Ta" data-num="73"><div class="num">73</div><div class="sym">Ta</div><div class="name">Тантал</div><div class="weight">180.95</div></div>
-        <div class="cell transition" data-name="Вольфрам" data-sym="W" data-num="74"><div class="num">74</div><div class="sym">W</div><div class="name">Вольфрам</div><div class="weight">183.84</div></div>
-        <div class="cell transition" data-name="Рений" data-sym="Re" data-num="75"><div class="num">75</div><div class="sym">Re</div><div class="name">Рений</div><div class="weight">186.21</div></div>
-        <div class="cell transition" data-name="Осмий" data-sym="Os" data-num="76"><div class="num">76</div><div class="sym">Os</div><div class="name">Осмий</div><div class="weight">190.23</div></div>
-        <div class="cell transition" data-name="Иридий" data-sym="Ir" data-num="77"><div class="num">77</div><div class="sym">Ir</div><div class="name">Иридий</div><div class="weight">192.22</div></div>
-        <div class="cell transition" data-name="Платина" data-sym="Pt" data-num="78"><div class="num">78</div><div class="sym">Pt</div><div class="name">Платина</div><div class="weight">195.08</div></div>
-        <div class="cell transition" data-name="Золото" data-sym="Au" data-num="79"><div class="num">79</div><div class="sym">Au</div><div class="name">Золото</div><div class="weight">196.97</div></div>
-        <div class="cell transition" data-name="Ртуть" data-sym="Hg" data-num="80"><div class="num">80</div><div class="sym">Hg</div><div class="name">Ртуть</div><div class="weight">200.59</div></div>
-        <div class="cell post-transition" data-name="Таллий" data-sym="Tl" data-num="81"><div class="num">81</div><div class="sym">Tl</div><div class="name">Таллий</div><div class="weight">204.38</div></div>
-        <div class="cell post-transition" data-name="Свинец" data-sym="Pb" data-num="82"><div class="num">82</div><div class="sym">Pb</div><div class="name">Свинец</div><div class="weight">207.2</div></div>
-        <div class="cell post-transition" data-name="Висмут" data-sym="Bi" data-num="83"><div class="num">83</div><div class="sym">Bi</div><div class="name">Висмут</div><div class="weight">208.98</div></div>
-        <div class="cell post-transition" data-name="Полоний" data-sym="Po" data-num="84"><div class="num">84</div><div class="sym">Po</div><div class="name">Полоний</div><div class="weight"></div></div>
-        <div class="cell halogen" data-name="Астат" data-sym="At" data-num="85"><div class="num">85</div><div class="sym">At</div><div class="name">Астат</div><div class="weight"></div></div>
-        <div class="cell noble" data-name="Радон" data-sym="Rn" data-num="86"><div class="num">86</div><div class="sym">Rn</div><div class="name">Радон</div><div class="weight"></div></div>
-
-        <div class="cell alkali" data-name="Франций" data-sym="Fr" data-num="87"><div class="num">87</div><div class="sym">Fr</div><div class="name">Франций</div><div class="weight"></div></div>
-        <div class="cell alkaline" data-name="Радий" data-sym="Ra" data-num="88"><div class="num">88</div><div class="sym">Ra</div><div class="name">Радий</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Актиноиды" data-sym="89-103" data-num="89-103"><div class="num">89-103</div><div class="sym">Ac-Lr</div><div class="name">Актин.</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Резерфордий" data-sym="Rf" data-num="104"><div class="num">104</div><div class="sym">Rf</div><div class="name">Резерфордий</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Дубний" data-sym="Db" data-num="105"><div class="num">105</div><div class="sym">Db</div><div class="name">Дубний</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Сиборгий" data-sym="Sg" data-num="106"><div class="num">106</div><div class="sym">Sg</div><div class="name">Сиборгий</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Борий" data-sym="Bh" data-num="107"><div class="num">107</div><div class="sym">Bh</div><div class="name">Борий</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Хассий" data-sym="Hs" data-num="108"><div class="num">108</div><div class="sym">Hs</div><div class="name">Хассий</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Мейтнерий" data-sym="Mt" data-num="109"><div class="num">109</div><div class="sym">Mt</div><div class="name">Мейтнерий</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Дармштадтий" data-sym="Ds" data-num="110"><div class="num">110</div><div class="sym">Ds</div><div class="name">Дармштадтий</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Рентгений" data-sym="Rg" data-num="111"><div class="num">111</div><div class="sym">Rg</div><div class="name">Рентгений</div><div class="weight"></div></div>
-        <div class="cell transition" data-name="Коперниций" data-sym="Cn" data-num="112"><div class="num">112</div><div class="sym">Cn</div><div class="name">Коперниций</div><div class="weight"></div></div>
-        <div class="cell post-transition" data-name="Нихоний" data-sym="Nh" data-num="113"><div class="num">113</div><div class="sym">Nh</div><div class="name">Нихоний</div><div class="weight"></div></div>
-        <div class="cell post-transition" data-name="Флеровий" data-sym="Fl" data-num="114"><div class="num">114</div><div class="sym">Fl</div><div class="name">Флеровий</div><div class="weight"></div></div>
-        <div class="cell post-transition" data-name="Московий" data-sym="Mc" data-num="115"><div class="num">115</div><div class="sym">Mc</div><div class="name">Московий</div><div class="weight"></div></div>
-        <div class="cell post-transition" data-name="Ливерморий" data-sym="Lv" data-num="116"><div class="num">116</div><div class="sym">Lv</div><div class="name">Ливерморий</div><div class="weight"></div></div>
-        <div class="cell halogen" data-name="Теннессин" data-sym="Ts" data-num="117"><div class="num">117</div><div class="sym">Ts</div><div class="name">Теннессин</div><div class="weight"></div></div>
-        <div class="cell noble" data-name="Оганесон" data-sym="Og" data-num="118"><div class="num">118</div><div class="sym">Og</div><div class="name">Оганесон</div><div class="weight"></div></div>
-        <!-- Продолжение таблицы: Разделитель и Лантаноиды -->
-        <div class="spacer-row"></div>
-
-        <div class="empty-cell" style="grid-column: span 2;"></div>
-        <div class="cell lanthanide" data-name="Лантан" data-sym="La" data-num="57"><div class="num">57</div><div class="sym">La</div><div class="name">Лантан</div><div class="weight">138.91</div></div>
-        <div class="cell lanthanide" data-name="Церий" data-sym="Ce" data-num="58"><div class="num">58</div><div class="sym">Ce</div><div class="name">Церий</div><div class="weight">140.12</div></div>
-        <div class="cell lanthanide" data-name="Празеодим" data-sym="Pr" data-num="59"><div class="num">59</div><div class="sym">Pr</div><div class="name">Празеодим</div><div class="weight">140.91</div></div>
-        <div class="cell lanthanide" data-name="Неодим" data-sym="Nd" data-num="60"><div class="num">60</div><div class="sym">Nd</div><div class="name">Неодим</div><div class="weight">144.24</div></div>
-        <div class="cell lanthanide" data-name="Прометий" data-sym="Pm" data-num="61"><div class="num">61</div><div class="sym">Pm</div><div class="name">Прометий</div><div class="weight"></div></div>
-        <div class="cell lanthanide" data-name="Самарий" data-sym="Sm" data-num="62"><div class="num">62</div><div class="sym">Sm</div><div class="name">Самарий</div><div class="weight">150.36</div></div>
-        <div class="cell lanthanide" data-name="Европий" data-sym="Eu" data-num="63"><div class="num">63</div><div class="sym">Eu</div><div class="name">Европий</div><div class="weight">151.96</div></div>
-        <div class="cell lanthanide" data-name="Гадолиний" data-sym="Gd" data-num="64"><div class="num">64</div><div class="sym">Gd</div><div class="name">Гадолиний</div><div class="weight">157.25</div></div>
-        <div class="cell lanthanide" data-name="Тербий" data-sym="Tb" data-num="65"><div class="num">65</div><div class="sym">Tb</div><div class="name">Тербий</div><div class="weight">158.93</div></div>
-        <div class="cell lanthanide" data-name="Диспрозий" data-sym="Dy" data-num="66"><div class="num">66</div><div class="sym">Dy</div><div class="name">Диспрозий</div><div class="weight">162.50</div></div>
-        <div class="cell lanthanide" data-name="Гольмий" data-sym="Ho" data-num="67"><div class="num">67</div><div class="sym">Ho</div><div class="name">Гольмий</div><div class="weight">164.93</div></div>
-        <div class="cell lanthanide" data-name="Эрбий" data-sym="Er" data-num="68"><div class="num">68</div><div class="sym">Er</div><div class="name">Эрбий</div><div class="weight">167.26</div></div>
-        <div class="cell lanthanide" data-name="Тулий" data-sym="Tm" data-num="69"><div class="num">69</div><div class="sym">Tm</div><div class="name">Тулий</div><div class="weight">168.93</div></div>
-        <div class="cell lanthanide" data-name="Иттербий" data-sym="Yb" data-num="70"><div class="num">70</div><div class="sym">Yb</div><div class="name">Иттербий</div><div class="weight">173.05</div></div>
-        <div class="cell lanthanide" data-name="Лютеций" data-sym="Lu" data-num="71"><div class="num">71</div><div class="sym">Lu</div><div class="name">Лютеций</div><div class="weight">174.97</div></div>
-        <div class="empty-cell"></div>
-        <!-- Продолжение таблицы: Актиноиды -->
-        <div class="empty-cell" style="grid-column: span 2;"></div>
-        <div class="cell actinide" data-name="Актиний" data-sym="Ac" data-num="89"><div class="num">89</div><div class="sym">Ac</div><div class="name">Актиний</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Торий" data-sym="Th" data-num="90"><div class="num">90</div><div class="sym">Th</div><div class="name">Торий</div><div class="weight">232.04</div></div>
-        <div class="cell actinide" data-name="Протактиний" data-sym="Pa" data-num="91"><div class="num">91</div><div class="sym">Pa</div><div class="name">Протакт.</div><div class="weight">231.04</div></div>
-        <div class="cell actinide" data-name="Уран" data-sym="U" data-num="92"><div class="num">92</div><div class="sym">U</div><div class="name">Уран</div><div class="weight">238.03</div></div>
-        <div class="cell actinide" data-name="Нептуний" data-sym="Np" data-num="93"><div class="num">93</div><div class="sym">Np</div><div class="name">Нептуний</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Плутоний" data-sym="Pu" data-num="94"><div class="num">94</div><div class="sym">Pu</div><div class="name">Плутоний</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Америций" data-sym="Am" data-num="95"><div class="num">95</div><div class="sym">Am</div><div class="name">Америций</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Кюрий" data-sym="Cm" data-num="96"><div class="num">96</div><div class="sym">Cm</div><div class="name">Кюрий</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Берклий" data-sym="Bk" data-num="97"><div class="num">97</div><div class="sym">Bk</div><div class="name">Берклий</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Калифорний" data-sym="Cf" data-num="98"><div class="num">98</div><div class="sym">Cf</div><div class="name">Калифорн.</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Эйнштейний" data-sym="Es" data-num="99"><div class="num">99</div><div class="sym">Es</div><div class="name">Эйнштейн.</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Фермий" data-sym="Fm" data-num="100"><div class="num">100</div><div class="sym">Fm</div><div class="name">Фермий</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Менделевий" data-sym="Md" data-num="101"><div class="num">101</div><div class="sym">Md</div><div class="name">Менделев.</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Нобелий" data-sym="No" data-num="102"><div class="num">102</div><div class="sym">No</div><div class="name">Нобелий</div><div class="weight"></div></div>
-        <div class="cell actinide" data-name="Лоуренсий" data-sym="Lr" data-num="103"><div class="num">103</div><div class="sym">Lr</div><div class="name">Лоуренс.</div><div class="weight"></div></div>
-        <div class="empty-cell"></div>
+            <!-- ВЫНЕСЕННЫЕ ЛАНТАНОИДЫ (Период 9 сетки) -->
+            <div class="element f-element" data-num="57" data-name="Лантан" data-sym="La" style="grid-column: 3; grid-row: 9;">
+                <div class="num">57</div><div class="symbol">La</div><div class="name">Лантан</div><div class="mass">138.91</div>
+            </div>
+            <div class="element f-element" data-num="58" data-name="Церий" data-sym="Ce" style="grid-column: 4; grid-row: 9;">
+                <div class="num">58</div><div class="symbol">Ce</div><div class="name">Церий</div><div class="mass">140.12</div>
+            </div>
+            <div class="element f-element" data-num="59" data-name="Празеодим" data-sym="Pr" style="grid-column: 5; grid-row: 9;">
+                <div class="num">59</div><div class="symbol">Pr</div><div class="name">Празеодим</div><div class="mass">140.91</div>
+            </div>
+            <div class="element f-element" data-num="60" data-name="Неодим" data-sym="Nd" style="grid-column: 6; grid-row: 9;">
+                <div class="num">60</div><div class="symbol">Nd</div><div class="name">Неодим</div><div class="mass">144.24</div>
+            </div>
+            <div class="element f-element" data-num="61" data-name="Прометий" data-sym="Pm" style="grid-column: 7; grid-row: 9;">
+                <div class="num">61</div><div class="symbol">Pm</div><div class="name">Прометий</div><div class="mass">(145)</div>
+            </div>
+            <div class="element f-element" data-num="62" data-name="Самарий" data-sym="Sm" style="grid-column: 8; grid-row: 9;">
+                <div class="num">62</div><div class="symbol">Sm</div><div class="name">Самарий</div><div class="mass">150.36</div>
+            </div>
+            <div class="element f-element" data-num="63" data-name="Европий" data-sym="Eu" style="grid-column: 9; grid-row: 9;">
+                <div class="num">63</div><div class="symbol">Eu</div><div class="name">Европий</div><div class="mass">151.96</div>
+            </div>
+            <div class="element f-element" data-num="64" data-name="Гадолиний" data-sym="Gd" style="grid-column: 10; grid-row: 9;">
+                <div class="num">64</div><div class="symbol">Gd</div><div class="name">Гадолиний</div><div class="mass">157.25</div>
+            </div>
+            <div class="element f-element" data-num="65" data-name="Тербий" data-sym="Tb" style="grid-column: 11; grid-row: 9;">
+                <div class="num">65</div><div class="symbol">Tb</div><div class="name">Тербий</div><div class="mass">158.93</div>
+            </div>
+            <div class="element f-element" data-num="66" data-name="Диспрозий" data-sym="Dy" style="grid-column: 12; grid-row: 9;">
+                <div class="num">66</div><div class="symbol">Dy</div><div class="name">Диспрозий</div><div class="mass">162.50</div>
+            </div>
+            <div class="element f-element" data-num="67" data-name="Гольмий" data-sym="Ho" style="grid-column: 13; grid-row: 9;">
+                <div class="num">67</div><div class="symbol">Ho</div><div class="name">Гольмий</div><div class="mass">164.93</div>
+            </div>
+            <div class="element f-element" data-num="68" data-name="Эрбий" data-sym="Er" style="grid-column: 14; grid-row: 9;">
+                <div class="num">68</div><div class="symbol">Er</div><div class="name">Эрбий</div><div class="mass">167.26</div>
+            </div>
+            <div class="element f-element" data-num="69" data-name="Тулий" data-sym="Tm" style="grid-column: 15; grid-row: 9;">
+                <div class="num">69</div><div class="symbol">Tm</div><div class="name">Тулий</div><div class="mass">168.93</div>
+            </div>
+            <div class="element f-element" data-num="70" data-name="Иттербий" data-sym="Yb" style="grid-column: 16; grid-row: 9;">
+                <div class="num">70</div><div class="symbol">Yb</div><div class="name">Иттербий</div><div class="mass">173.05</div>
+            </div>
+            <div class="element f-element" data-num="71" data-name="Лютеций" data-sym="Lu" style="grid-column: 17; grid-row: 9;">
+                <div class="num">71</div><div class="symbol">Lu</div><div class="name">Лютеций</div><div class="mass">174.97</div>
+            </div>
+            <!-- ВЫНЕСЕННЫЕ АКТИНОИДЫ (Период 10 сетки) -->
+            <div class="element f-element" data-num="89" data-name="Актиний" data-sym="Ac" style="grid-column: 3; grid-row: 10;">
+                <div class="num">89</div><div class="symbol">Ac</div><div class="name">Актиний</div><div class="mass">(227)</div>
+            </div>
+            <div class="element f-element" data-num="90" data-name="Торий" data-sym="Th" style="grid-column: 4; grid-row: 10;">
+                <div class="num">90</div><div class="symbol">Th</div><div class="name">Торий</div><div class="mass">232.04</div>
+            </div>
+            <div class="element f-element" data-num="91" data-name="Протактиний" data-sym="Pa" style="grid-column: 5; grid-row: 10;">
+                <div class="num">91</div><div class="symbol">Pa</div><div class="name">Протакт.</div><div class="mass">231.04</div>
+            </div>
+            <div class="element f-element" data-num="92" data-name="Уран" data-sym="U" style="grid-column: 6; grid-row: 10;">
+                <div class="num">92</div><div class="symbol">U</div><div class="name">Уран</div><div class="mass">238.03</div>
+            </div>
+            <div class="element f-element" data-num="93" data-name="Нептуний" data-sym="Np" style="grid-column: 7; grid-row: 10;">
+                <div class="num">93</div><div class="symbol">Np</div><div class="name">Нептуний</div><div class="mass">(237)</div>
+            </div>
+            <div class="element f-element" data-num="94" data-name="Плутоний" data-sym="Pu" style="grid-column: 8; grid-row: 10;">
+                <div class="num">94</div><div class="symbol">Pu</div><div class="name">Плутоний</div><div class="mass">(244)</div>
+            </div>
+            <div class="element f-element" data-num="95" data-name="Америций" data-sym="Am" style="grid-column: 9; grid-row: 10;">
+                <div class="num">95</div><div class="symbol">Am</div><div class="name">Америций</div><div class="mass">(243)</div>
+            </div>
+            <div class="element f-element" data-num="96" data-name="Кюрий" data-sym="Cm" style="grid-column: 10; grid-row: 10;">
+                <div class="num">96</div><div class="symbol">Cm</div><div class="name">Кюрий</div><div class="mass">(247)</div>
+            </div>
+            <div class="element f-element" data-num="97" data-name="Берклий" data-sym="Bk" style="grid-column: 11; grid-row: 10;">
+                <div class="num">97</div><div class="symbol">Bk</div><div class="name">Берклий</div><div class="mass">(247)</div>
+            </div>
+            <div class="element f-element" data-num="98" data-name="Калифорний" data-sym="Cf" style="grid-column: 12; grid-row: 10;">
+                <div class="num">98</div><div class="symbol">Cf</div><div class="name">Калифорн.</div><div class="mass">(251)</div>
+            </div>
+            <div class="element f-element" data-num="99" data-name="Эйнштейний" data-sym="Es" style="grid-column: 13; grid-row: 10;">
+                <div class="num">99</div><div class="symbol">Es</div><div class="name">Эйнштейн.</div><div class="mass">(252)</div>
+            </div>
+            <div class="element f-element" data-num="100" data-name="Фермий" data-sym="Fm" style="grid-column: 14; grid-row: 10;">
+                <div class="num">100</div><div class="symbol">Fm</div><div class="name">Фермий</div><div class="mass">(257)</div>
+            </div>
+            <div class="element f-element" data-num="101" data-name="Менделевий" data-sym="Md" style="grid-column: 15; grid-row: 10;">
+                <div class="num">101</div><div class="symbol">Md</div><div class="name">Менделев.</div><div class="mass">(258)</div>
+            </div>
+            <div class="element f-element" data-num="102" data-name="Нобелий" data-sym="No" style="grid-column: 16; grid-row: 10;">
+                <div class="num">102</div><div class="symbol">No</div><div class="name">Нобелий</div><div class="mass">(259)</div>
+            </div>
+            <div class="element f-element" data-num="103" data-name="Лоуренсий" data-sym="Lr" style="grid-column: 17; grid-row: 10;">
+                <div class="num">103</div><div class="symbol">Lr</div><div class="name">Лоуренс.</div><div class="mass">(262)</div>
+            </div>
+        </div>
     </div>
-</div>
 
-<script>
-    const searchInput = document.getElementById('search');
-    const cells = document.querySelectorAll('.cell');
+    <script>
+        const searchInput = document.getElementById('search');
+        const elements = document.querySelectorAll('.element');
 
-    // Функция поиска
-    function filterElements() {
-        const query = searchInput.value.toLowerCase().trim();
-        
-        cells.forEach(cell => {
-            const name = cell.getAttribute('data-name').toLowerCase();
-            const sym = cell.getAttribute('data-sym').toLowerCase();
-            const num = cell.getAttribute('data-num');
-
-            if (name.includes(query) || sym.includes(query) || num === query) {
-                cell.classList.remove('dimmed');
-            } else {
-                cell.classList.add('dimmed');
-                cell.classList.remove('active');
-            }
+        // Живой поиск элементов
+        searchInput.addEventListener('input', () => {
+            const val = searchInput.value.toLowerCase().trim();
+            elements.forEach(el => {
+                const name = el.getAttribute('data-name')?.toLowerCase() || '';
+                const sym = el.getAttribute('data-sym')?.toLowerCase() || '';
+                const num = el.getAttribute('data-num') || '';
+                
+                if (name.includes(val) || sym.includes(val) || num === val) {
+                    el.classList.remove('fade-out');
+                } else {
+                    el.classList.add('fade-out');
+                    el.classList.remove('active');
+                }
+            });
         });
-    }
 
-    // Сброс фильтра и эффектов по двойному клику
-    function resetSearch() {
-        searchInput.value = '';
-        cells.forEach(cell => {
-            cell.classList.remove('dimmed');
-            cell.classList.remove('active');
+        // СБРОС ПОИСКА ПО ДВОЙНОМУ КЛИКУ
+        searchInput.addEventListener('dblclick', () => {
+            searchInput.value = '';
+            elements.forEach(el => {
+                el.classList.remove('fade-out');
+                el.classList.remove('active');
+            });
         });
-    }
 
-    // Увеличение карточки элемента по клику
-    cells.forEach(cell => {
-        cell.addEventListener('click', () => {
-            if (cell.classList.contains('active')) {
-                cell.classList.remove('active');
-            } else {
-                cells.forEach(c => c.classList.remove('active'));
-                cell.classList.add('active');
-            }
+        // Расширение карточки по клику
+        elements.forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (el.classList.contains('active')) {
+                    el.classList.remove('active');
+                } else {
+                    elements.forEach(item => item.classList.remove('active'));
+                    el.classList.add('active');
+                }
+            });
         });
-    });
 
-    searchInput.addEventListener('input', filterElements);
-    searchInput.addEventListener('dblclick', resetSearch);
-</script>
+        // Клик вовне закрывает активную карточку элементов
+        document.addEventListener('click', () => {
+            elements.forEach(item => item.classList.remove('active'));
+        });
+
+        // Фоновый рендер частиц на Canvas
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let w = canvas.width = window.innerWidth;
+        let h = canvas.height = window.innerHeight;
+        const pts = [];
+
+        for(let i=0; i<45; i++) {
+            pts.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*2+1, vx: Math.random()*0.4-0.2, vy: Math.random()*0.4-0.2 });
+        }
+
+        function draw() {
+            ctx.clearRect(0,0,w,h);
+            ctx.fillStyle = 'rgba(0, 180, 98, 0.2)';
+            pts.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if(p.x<0 || p.x>w) p.vx *= -1;
+                if(p.y<0 || p.y>h) p.vy *= -1;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+            });
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        window.addEventListener('resize', () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; });
+    </script>
 </body>
 </html>
-
