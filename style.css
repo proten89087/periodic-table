@@ -65,17 +65,21 @@ h1 {
     box-shadow: 0 0 10px rgba(0, 180, 98, 0.4); 
 }
 
+/* Обертка с умным и плавным скроллом для смартфонов */
 .table-wrapper { 
     width: 100%; 
     height: calc(100vh - 65px); 
     z-index: 2; 
     display: flex; 
-    justify-content: center; 
-    align-items: center; 
+    justify-content: flex-start; 
+    align-items: flex-start; 
     overflow: auto; 
-    padding: 5px;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch; 
+    overscroll-behavior: contain;
 }
 
+/* Сетка таблицы Менделеева */
 .periodic-table {
     display: grid; 
     grid-template-columns: repeat(18, minmax(22px, 1fr)); 
@@ -121,9 +125,9 @@ h1 {
     background: #202226; 
 }
 
-/* СУЩЕСТВЕННО УВЕЛИЧЕННЫЕ РАЗМЕРЫ ШРИФТОВ ДЛЯ ТАБЛИЦЫ */
+/* Крупный размер шрифтов с исправленной компактной шириной символов */
 .element .num { 
-    font-size: min(0.9vw, 0.9vh, 12px); /* Порядковый номер элемента */
+    font-size: min(0.9vw, 0.9vh, 12px); 
     align-self: flex-start; 
     font-weight: 700; 
     color: rgba(255, 255, 255, 0.45); 
@@ -132,15 +136,18 @@ h1 {
 }
 
 .element .symbol { 
-    font-size: min(2.1vw, 2.1vh, 22px); /* Химический символ (крупный и жирный) */
+    font-size: min(2.1vw, 2.1vh, 22px); 
     font-weight: 800; 
     text-align: center; 
     line-height: 1; 
     margin: 1px 0;
+    letter-spacing: -1.5px; 
+    transform: scaleX(0.85); /* Сужает буквы по горизонтали, возвращая прошлую ширину */
+    display: inline-block;
 }
 
 .element .name { 
-    font-size: min(0.75vw, 0.75vh, 10px); /* Название на русском языке */
+    font-size: min(0.75vw, 0.75vh, 10px); 
     font-weight: 900; 
     color: #fff; 
     text-align: center; 
@@ -150,13 +157,15 @@ h1 {
     text-overflow: ellipsis; 
     white-space: nowrap; 
     line-height: 1; 
+    letter-spacing: -0.3px;
 }
 
 .element .mass { 
-    font-size: min(0.7vw, 0.7vh, 9px); /* Атомная масса внизу ячейки */
+    font-size: min(0.7vw, 0.7vh, 9px); 
     text-align: center; 
     line-height: 1; 
     color: rgba(255, 255, 255, 0.6); 
+    letter-spacing: -0.5px;
 }
 
 /* Цвета электронных семейств */
@@ -210,10 +219,12 @@ h1 {
     100% { transform: translate(-50%, -50%) rotate(360deg); } 
 }
 
-/* Размеры сетки принудительно фиксируются на смартфонах и мелких дисплеях */
-@media (max-height: 550px) or (max-width: 850px) {
+/* Фиксация сетки на смартфонах для активации удобной прокрутки */
+@media (max-height: 768px) or (max-width: 1024px) {
     .periodic-table {
-        width: 900px;
-        height: 480px;
+        width: 1100px;  
+        height: 600px;  
+        grid-template-columns: repeat(18, minmax(55px, 1fr));
+        grid-template-rows: repeat(10, minmax(50px, 1fr));
     }
 }
