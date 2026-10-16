@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Периодическая система элементов Менделеева</title>
-    <!-- Подключаем внешние стили -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Фоновый холст для летающих частиц -->
     <canvas id="particles-canvas"></canvas>
     
     <h1>Периодическая система Менделеева</h1>
@@ -17,12 +15,10 @@
         <input type="text" id="search" class="search-input" placeholder="Поиск элементов...">
     </div>
     
-    <!-- Обертка таблицы с поддержкой мобильного скролла -->
     <div class="table-wrapper">
         <div class="periodic-table" id="table-container"></div>
     </div>
 
-    <!-- Модальное окно (Карточка элемента) -->
     <div class="modal-overlay" id="modal">
         <div class="modal-card" id="modal-card">
             <div>
@@ -36,14 +32,14 @@
                 <div><span>Плавл:</span><span id="m-melt"></span></div>
                 <div><span>Кип:</span><span id="m-boil"></span></div>
             </div>
-            <!-- Сюда выводятся слои электронов и анимированные орбиты -->
             <div class="shells-vertical" id="m-shells"></div>
             <div class="rings-container" id="m-rings"></div>
         </div>
     </div>
 
-    <!-- Подключаем логику скрипта -->
-    <script src="script.js"></script>
+    <!-- ПОДКЛЮЧЕНИЕ СНИЗУ (Важен порядок!) -->
+    <script src="database.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
 * { 
@@ -113,7 +109,6 @@ h1 {
     box-shadow: 0 0 10px rgba(0, 180, 98, 0.4); 
 }
 
-/* Обертка с умным скроллом, чтобы элементы не обрезались на экранах смартфонов */
 .table-wrapper { 
     width: 100%; 
     height: calc(100vh - 55px); 
@@ -125,7 +120,6 @@ h1 {
     padding: 5px;
 }
 
-/* Сетка таблицы Менделеева */
 .periodic-table {
     display: grid; 
     grid-template-columns: repeat(18, minmax(18px, 1fr)); 
@@ -157,11 +151,10 @@ h1 {
     transition: transform 0.2s, opacity 0.3s;
 }
 
-/* Отключение кликов и эффектов наведения на скрытых при поиске элементах */
 .element.fade-out { 
     opacity: 0.05; 
     filter: grayscale(0.9); 
-    pointer-events: none; /* Браузер полностью игнорирует клики по элементу */
+    pointer-events: none; 
     cursor: default;
 }
 
@@ -172,20 +165,17 @@ h1 {
     background: #202226; 
 }
 
-/* Оптимизированные адаптивные шрифты внутри ячеек элементов */
 .element .num { font-size: min(0.6vw, 0.6vh, 8px); align-self: flex-start; font-weight: 700; color: rgba(255, 255, 255, 0.35); line-height: 1; }
 .element .symbol { font-size: min(1.3vw, 1.3vh, 14px); font-weight: 800; text-align: center; line-height: 1.1; }
 .element .name { font-size: min(0.45vw, 0.45vh, 6px); font-weight: 900; color: #fff; text-align: center; text-transform: uppercase; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; }
 .element .mass { font-size: min(0.48vw, 0.48vh, 6px); text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.5); }
 
-/* Цвета электронных блоков (семейств) */
 .s-element { color: #b6be5d; } 
 .p-element { color: #00b462; } 
 .d-element { color: #ff5c5c; } 
 .f-element { color: #b380a0; } 
 .unknown-element { color: #a0aec0; }
 
-/* Дизайн модального окна */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 99999; backdrop-filter: blur(4px);
@@ -229,14 +219,12 @@ h1 {
     100% { transform: translate(-50%, -50%) rotate(360deg); } 
 }
 
-/* Фикс для маленьких экранов / горизонтальной ориентации смартфона */
 @media (max-height: 400px) or (max-width: 600px) {
     .periodic-table {
         width: 750px;
         height: 380px;
     }
 }
-// Полная сжатая база данных на 118 химических элементов
 const rawData = [
     "1|H|Водород|1.008|s|1|1|1|0.000089|-259°C|-253°C",
     "2|He|Гелий|4.0026|p|18|1|2|0.000178|-272°C|-269°C",
@@ -247,7 +235,7 @@ const rawData = [
     "7|N|Азот|14.007|p|15|2|2,5|0.00125|-210°C|-196°C",
     "8|O|Кислород|15.999|p|16|2|2,6|0.00143|-218°C|-183°C",
     "9|F|Фтор|18.998|p|17|2|2,7|0.0017|-220°C|-188°C",
-    "10|Ne|Неон|20.180|p|18|2|2,8|0.0009|-249°C|-246°C",
+    "10|Ne|Neon|20.180|p|18|2|2,8|0.0009|-249°C|-246°C",
     "11|Na|Натрий|22.990|s|1|3|2,8,1|0.971|98°C|883°C",
     "12|Mg|Магний|24.305|s|2|3|2,8,2|1.738|650°C|1090°C",
     "13|Al|Алюминий|26.982|p|13|3|2,8,3|2.698|660°C|2519°C",
@@ -358,7 +346,6 @@ const rawData = [
     "118|Og|Оганесон|294|unknown|18|7|2,8,18,32,32,18,8|н/д|н/д|н/д"
 ];
 
-// Преобразование текстовой базы в массив готовых JS-объектов
 const elementsData = rawData.map(item => {
     const parts = item.split('|');
     return {
@@ -367,12 +354,10 @@ const elementsData = rawData.map(item => {
         shells: parts[7].split(','), density: parts[8], melt: parts[9], boil: parts[10]
     };
 });
-// Константы и глобальные ссылки на DOM элементы
 const container = document.getElementById('table-container');
 const modal = document.getElementById('modal');
 const searchInput = document.getElementById('search');
 
-// 1. Автоматическая генерация HTML-ячеек для элементов
 elementsData.forEach(el => {
     const div = document.createElement('div');
     div.className = `element ${el.type}-element`;
@@ -393,7 +378,6 @@ elementsData.forEach(el => {
     container.appendChild(div);
 });
 
-// 2. Логика живого поиска элементов с полной блокировкой неактивных кликов
 searchInput.addEventListener('input', (e) => {
     const val = e.target.value.toLowerCase().trim();
     const gridElements = container.querySelectorAll('.element');
@@ -403,18 +387,16 @@ searchInput.addEventListener('input', (e) => {
         const sym = item.getAttribute('data-sym');
         const num = item.getAttribute('data-num');
 
-        // Проверка на вхождение поискового запроса
         const isMatch = !val || name.includes(val) || sym.includes(val) || num === val;
 
         if (isMatch) {
             item.classList.remove('fade-out');
         } else {
-            item.classList.add('fade-out'); // Свойство pointer-events: none заблокирует их в CSS
+            item.classList.add('fade-out');
         }
     });
 });
 
-// 3. Открытие карточки атома с расчетом орбит
 function openModal(el) {
     const card = document.getElementById('modal-card');
     const color = window.getComputedStyle(container.querySelector(`[data-num="${el.num}"]`)).color;
@@ -428,11 +410,9 @@ function openModal(el) {
     document.getElementById('m-melt').innerText = el.melt;
     document.getElementById('m-boil').innerText = el.boil;
 
-    // Вывод текста слоев электронов
     const shellsContainer = document.getElementById('m-shells');
     shellsContainer.innerHTML = el.shells.map(s => `<div>${s}</div>`).join('');
 
-    // Построение интерактивных CSS-орбит на основе тригонометрии
     const ringsContainer = document.getElementById('m-rings');
     ringsContainer.innerHTML = '';
     
@@ -463,12 +443,10 @@ function openModal(el) {
     modal.style.display = 'flex';
 }
 
-// Закрытие модального окна карточки
 modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.style.display = 'none';
 });
 
-// 4. Движок анимированных частиц на HTML5 Canvas
 const canvas = document.getElementById('particles-canvas');
 const ctx = canvas.getContext('2d');
 let particles = [];
