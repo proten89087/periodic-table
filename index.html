@@ -42,7 +42,7 @@
         
         .element {
             background: #16171a; border: 1px solid currentColor; border-radius: 4px;
-            padding: 2px 4px; display: flex; flex-direction: column; justify-content: space-between;
+            padding: 3px 2px; display: flex; flex-direction: column; justify-content: space-between;
             align-items: center; cursor: pointer; position: relative; user-select: none;
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s, opacity 0.3s, filter 0.3s;
         }
@@ -50,18 +50,18 @@
         .element:hover:not(.active) { transform: scale(1.25); z-index: 10; box-shadow: 0 0 15px currentColor; }
         
         /* Зрячие и чёткие размеры шрифтов на компьютере */
-        .element .num { font-size: 10px; align-self: flex-start; font-weight: bold; line-height: 1; color: rgba(255,255,255,0.6); }
-        .element .symbol { font-size: 15px; font-weight: bold; text-align: center; line-height: 1; text-shadow: 0 0 6px currentColor; }
+        .element .num { font-size: 11px; align-self: flex-start; font-weight: bold; line-height: 1; color: rgba(255,255,255,0.6); }
+        .element .symbol { font-size: 16px; font-weight: bold; text-align: center; line-height: 1; text-shadow: 0 0 6px currentColor; margin: 1px 0; }
         
-        /* ДОБАВЛЕНО ЧЁТКОЕ РУССКОЕ НАЗВАНИЕ В СЕТКУ */
-        .element .name { display: block; font-size: 8px; text-align: center; color: rgba(255, 255, 255, 0.8); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; line-height: 1; }
+        /* КРУПНЫЕ И ЯРКИЕ РУССКИЕ НАЗВАНИЯ В СЕТКЕ */
+        .element .name { display: block; font-size: 10px; font-weight: 600; text-align: center; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; line-height: 1; margin-bottom: 2px; }
         .element .mass { font-size: 9px; text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.4); font-weight: 500; }
         .element .shells-list, .element .extended-info, .element .orbit-container { display: none; }
 
         .s-element { color: #b6be5d; } .p-element { color: #00b462; }
         .d-element { color: #ff5c5c; } .f-element { color: #b380a0; } .unknown-element { color: #a0aec0; }
 
-        /* Настройка активного элемента (масштаб 5.5х) */
+        /* Идеальное масштабирование активной карточки на ПК */
         .element.active {
             transform: scale(5.5) !important; z-index: 999999 !important; 
             box-shadow: 0 30px 70px rgba(0,0,0,0.95), 0 0 45px currentColor !important; 
@@ -90,19 +90,23 @@
         .electron-dot { position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%; box-shadow: 0 0 6px #fff, 0 0 10px currentColor; transform: translate(-50%, -50%); }
         @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 
-        /* Идеальное отображение на смартфонах */
+        /* ИДЕАЛЬНОЕ СВОБОДНОЕ ОТОБРАЖЕНИЕ НА СМАРТФОНАХ С РУССКИМ НАЗВАНИЕМ */
         @media (max-width: 768px) {
             h1 { font-size: 1.1rem; margin-top: 5px; }
             .periodic-table { 
                 gap: 3px; padding: 6px; border-radius: 8px; 
-                aspect-ratio: auto !important; height: 60vh !important;
+                aspect-ratio: auto !important; height: 62vh !important;
             }
-            .element { border-radius: 2px; padding: 2px 1px; justify-content: center; gap: 1px; }
-            .element .symbol { font-size: 11px !important; line-height: 1; }
-            .element .num { font-size: 7px !important; line-height: 1; margin-bottom: auto; }
-            .element .name { display: none !important; } /* скрываем имя в сетке мобилок, чтобы не было каши */
+            .element { border-radius: 2px; padding: 2px 1px; justify-content: space-between; gap: 1px; }
+            
+            .element .symbol { font-size: 12px !important; line-height: 1; font-weight: bold; }
+            .element .num { font-size: 8px !important; line-height: 1; align-self: center; color: rgba(255,255,255,0.7); }
+            
+            /* Русские названия на экранах мобилок */
+            .element .name { display: block !important; font-size: 7.5px !important; font-weight: 500; line-height: 1; max-width: 100%; color: rgba(255,255,255,0.9); }
             .element .mass { display: none !important; }
             
+            /* Мобильная всплывающая по центру карточка */
             .element.active {
                 position: fixed !important; top: 50% !important; left: 50% !important;
                 transform: translate(-50%, -50%) scale(1) !important; width: 85vw !important;
@@ -110,9 +114,9 @@
                 grid-row: auto !important; padding: 15px !important; border-radius: 12px !important;
                 box-shadow: 0 0 60px rgba(0,0,0,0.95), 0 0 35px currentColor !important;
             }
-            .element.active .num { font-size: 0.9rem !important; }
-            .element.active .symbol { font-size: 2.5rem !important; margin-top: 3px !important; }
-            .element.active .name { font-size: 1.1rem !important; margin-bottom: 6px !important; display: block !important; }
+            .element.active .num { font-size: 0.9rem !important; align-self: flex-start !important; }
+            .element.active .symbol { font-size: 2.5rem !important; margin-top: 3px !important; text-align: left !important; align-self: flex-start !important; }
+            .element.active .name { font-size: 1.1rem !important; margin-bottom: 6px !important; text-align: left !important; align-self: flex-start !important; display: block !important; }
             .element.active .mass { font-size: 1rem !important; padding-top: 6px !important; margin-top: 4px !important; display: block !important; }
             .element.active .shells-list { font-size: 0.85rem !important; right: 15px !important; top: 15px !important; line-height: 1.2 !important; }
             .element.active .extended-info { font-size: 0.75rem !important; gap: 4px !important; margin-top: 8px !important; }
@@ -125,9 +129,6 @@
     <h1>Периодическая система элементов</h1>
     <div class="search-container"><input type="text" id="search" placeholder="Поиск элемента (на русском, символ, номер)..." autocomplete="off"></div>
     <div class="table-wrapper">
-        <div class="periodic-table" id="table"></div>
-    </div>
-    <script>
         const packedElements = [
             "1|H|Водород|1|1|s|1.008|0.000089 г/см³|-259.1°C|-252.87°C","2|He|Гелий|18|1|p|4.0026|0.000178 г/см³|-272.2°C|-268.93°C",
             "3|Li|Литий|1|2|s|6.94|0.534 г/см³|180.54°C|1342°C","4|Be|Бериллий|2|2|s|9.0122|1.85 г/см³|1287°C|2469°C",
