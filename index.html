@@ -4,17 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Периодическая система элементов Менделеева</title>
+    <!-- Подключаем внешние стили -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Фоновый холст для летающих частиц -->
     <canvas id="particles-canvas"></canvas>
+    
     <h1>Периодическая система Менделеева</h1>
+    
     <div class="search-container">
         <input type="text" id="search" class="search-input" placeholder="Поиск элементов...">
     </div>
+    
+    <!-- Обертка таблицы с поддержкой мобильного скролла -->
     <div class="table-wrapper">
         <div class="periodic-table" id="table-container"></div>
     </div>
+
+    <!-- Модальное окно (Карточка элемента) -->
     <div class="modal-overlay" id="modal">
         <div class="modal-card" id="modal-card">
             <div>
@@ -28,10 +36,13 @@
                 <div><span>Плавл:</span><span id="m-melt"></span></div>
                 <div><span>Кип:</span><span id="m-boil"></span></div>
             </div>
+            <!-- Сюда выводятся слои электронов и анимированные орбиты -->
             <div class="shells-vertical" id="m-shells"></div>
             <div class="rings-container" id="m-rings"></div>
         </div>
     </div>
+
+    <!-- Подключаем логику скриптов (Строго в таком порядке) -->
     <script src="database.js"></script>
     <script src="main.js"></script>
 </body>
