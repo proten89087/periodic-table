@@ -49,7 +49,6 @@
         .element.fade-out { opacity: 0.15; filter: grayscale(80%) !important; pointer-events: none; }
         .element:hover:not(.active) { transform: scale(1.25); z-index: 10; box-shadow: 0 0 15px currentColor; }
         
-        /* Исправленные ЗРЯЧИЕ шрифты для компьютера */
         .element .num { font-size: 11px; align-self: flex-start; font-weight: bold; line-height: 1; color: rgba(255,255,255,0.6); }
         .element .symbol { font-size: 16px; font-weight: bold; text-align: center; line-height: 1.1; text-shadow: 0 0 6px currentColor; }
         .element .mass { font-size: 10px; text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.4); font-weight: 500; }
@@ -58,7 +57,6 @@
         .s-element { color: #b6be5d; } .p-element { color: #00b462; }
         .d-element { color: #ff5c5c; } .f-element { color: #b380a0; } .unknown-element { color: #a0aec0; }
 
-        /* Настройка активного элемента (масштаб 5.5х) */
         .element.active {
             transform: scale(5.5) !important; z-index: 999999 !important; 
             box-shadow: 0 30px 70px rgba(0,0,0,0.95), 0 0 45px currentColor !important; 
@@ -87,15 +85,15 @@
         .electron-dot { position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%; box-shadow: 0 0 6px #fff, 0 0 10px currentColor; transform: translate(-50%, -50%); }
         @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 
-        /* Идеальное отображение на смартфонах */
         @media (max-width: 768px) {
             h1 { font-size: 1.1rem; margin-top: 5px; }
-            .periodic-table { gap: 2px; padding: 4px; border-radius: 8px; }
-            .element { border-radius: 2px; padding: 2px; }
-            
-            /* Чёткие и зрячие шрифты для мобильных ячеек */
-            .element .symbol { font-size: 10px !important; }
-            .element .num { font-size: 6px !important; }
+            .periodic-table { 
+                gap: 3px; padding: 6px; border-radius: 8px; 
+                aspect-ratio: auto !important; height: 60vh !important;
+            }
+            .element { border-radius: 2px; padding: 3px 1px; justify-content: center; gap: 2px; }
+            .element .symbol { font-size: 11px !important; line-height: 1; }
+            .element .num { font-size: 7px !important; line-height: 1; margin-bottom: auto; }
             .element .mass { display: none !important; }
             
             .element.active {
@@ -214,7 +212,7 @@
 
         packedElements.forEach(raw => {
             const p = raw.split('|');
-            const el = { num: p[0], symbol: p[1], name: p[2], col: p[3], row: p[4], category: classMap[p[5]], mass: p[6], density: p[7], melt: p[8], boil: p[9] };
+            const el = { num: p, symbol: p, name: p, col: p, row: p, category: classMap[p], mass: p, density: p, melt: p, boil: p };
             el.shells = calculateShells(parseInt(el.num));
 
             const cell = document.createElement('div');
