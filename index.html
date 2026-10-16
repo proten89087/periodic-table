@@ -4,80 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Периодическая система элементов Менделеева</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #060709; color: #fff; height: 100vh;
-            display: flex; flex-direction: column; justify-content: flex-start;
-            align-items: center; overflow: hidden; padding: 4px; position: relative;
-        }
-        #particles-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        h1 { font-size: 0.9rem; margin-bottom: 2px; font-weight: 700; letter-spacing: 1px; color: #a0aec0; text-transform: uppercase; z-index: 10; text-align: center; }
-        .search-container { z-index: 10; margin-bottom: 4px; width: 100%; max-width: 260px; }
-        .search-input {
-            width: 100%; padding: 5px 10px; background: rgba(22, 23, 26, 0.9);
-            border: 2px solid #2d3748; border-radius: 6px; color: #fff; font-size: 0.8rem;
-            outline: none; transition: all 0.3s; text-align: center; font-weight: 600;
-        }
-        .search-input:focus { border-color: #00b462; box-shadow: 0 0 10px rgba(0, 180, 98, 0.4); }
-        .table-wrapper { width: 100%; height: calc(100vh - 55px); z-index: 2; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        
-        .periodic-table {
-            display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); grid-template-rows: repeat(10, minmax(0, 1fr)); 
-            gap: 2px; width: 100%; height: 100%; max-width: 100vw; max-height: 100vh;
-            background: rgba(10, 12, 18, 0.9); backdrop-filter: blur(10px); padding: 4px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.02);
-        }
-        .element {
-            background: #16171a; border: 1px solid currentColor; border-radius: 2px;
-            padding: 1px; display: flex; flex-direction: column; justify-content: space-between;
-            align-items: center; cursor: pointer; position: relative; user-select: none; transition: transform 0.2s, opacity 0.3s;
-        }
-        .element.fade-out { opacity: 0.12; filter: grayscale(0.7); }
-        .element:hover { transform: scale(1.15); z-index: 100; box-shadow: 0 0 8px currentColor; background: #202226; }
-        
-        /* Шрифты сетки */
-        .element .num { font-size: 0.55vw; align-self: flex-start; font-weight: 700; color: rgba(255, 255, 255, 0.35); line-height: 1; }
-        .element .symbol { font-size: 1.1vw; font-weight: 800; text-align: center; line-height: 1; }
-        .element .name { font-size: 0.45vw; font-weight: 900; color: #fff; text-align: center; text-transform: uppercase; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; }
-        .element .mass { font-size: 0.48vw; text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.5); }
-        
-        .s-element { color: #b6be5d; } .p-element { color: #00b462; } .d-element { color: #ff5c5c; } .f-element { color: #b380a0; } .unknown-element { color: #a0aec0; }
-        
-        /* АДАПТИВНОЕ МОДАЛЬНОЕ ОКНО С ПОДДЕРЖКОЙ СКРОЛЛА КОНТЕНТА */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 99999; backdrop-filter: blur(4px);
-        }
-        .modal-card {
-            background: #140d12; border: 3px solid #fff; border-radius: 12px; width: 290px; height: 290px; padding: 15px;
-            display: flex; flex-direction: column; justify-content: space-between; position: relative; color: #fff; overflow-y: auto; overflow-x: hidden;
-        }
-        .modal-card .num { font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.5); }
-        .modal-card .symbol { font-size: 3.2rem; font-weight: 800; line-height: 0.85; }
-        .modal-card .name { font-size: 1.4rem; font-weight: 800; margin-top: 2px; }
-        .modal-card .mass { font-size: 1.1rem; font-weight: 700; border-bottom: 2px solid rgba(255,255,255,0.2); width: 50%; padding-bottom: 2px; margin-bottom: 5px; }
-        
-        .modal-card .extra-info { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; font-weight: 700; z-index: 5; margin-top: auto; }
-        .modal-card .extra-info div { display: flex; justify-content: space-between; width: 100%; max-width: 200px; }
-        .modal-card .extra-info span:first-child { color: rgba(255,255,255,0.4); }
-        .modal-card .extra-info span:last-child { color: #fff; }
-        
-        .modal-card .shells-vertical { position: absolute; right: 15px; top: 15px; display: flex; flex-direction: column; gap: 3px; font-size: 1.1rem; font-weight: 800; text-align: right; z-index: 10; }
-        .modal-card .rings-container { position: absolute; top: 50%; left: 50%; width: 95%; height: 95%; transform: translate(-50%, -50%); pointer-events: none; z-index: 1; }
-        .modal-orbit { position: absolute; top: 50%; left: 50%; border: 1px solid rgba(255,255,255,0.08); border-radius: 50%; transform: translate(-50%, -50%); animation: spinRing linear infinite; }
-        
-        /* Стили точек-электронов на кольцах */
-        .modal-electron { position: absolute; width: 4px; height: 4px; background: #fff; border-radius: 50%; box-shadow: 0 0 6px #fff, 0 0 8px currentColor; transform: translate(-50%, -50%); }
-        @keyframes spinRing { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
-    </style>
+    <!-- Подключаем внешние стили -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Фоновый холст для летающих частиц -->
     <canvas id="particles-canvas"></canvas>
+    
     <h1>Периодическая система Менделеева</h1>
-    <div class="search-container"><input type="text" id="search" class="search-input" placeholder="Поиск элементов..."></div>
-    <div class="table-wrapper"><div class="periodic-table" id="table-container"></div></div>
+    
+    <div class="search-container">
+        <input type="text" id="search" class="search-input" placeholder="Поиск элементов...">
+    </div>
+    
+    <!-- Обертка таблицы с поддержкой мобильного скролла -->
+    <div class="table-wrapper">
+        <div class="periodic-table" id="table-container"></div>
+    </div>
 
+    <!-- Модальное окно (Карточка элемента) -->
     <div class="modal-overlay" id="modal">
         <div class="modal-card" id="modal-card">
             <div>
@@ -91,248 +36,477 @@
                 <div><span>Плавл:</span><span id="m-melt"></span></div>
                 <div><span>Кип:</span><span id="m-boil"></span></div>
             </div>
+            <!-- Сюда выводятся слои электронов и анимированные орбиты -->
             <div class="shells-vertical" id="m-shells"></div>
             <div class="rings-container" id="m-rings"></div>
         </div>
     </div>
 
-    <script>
-        // Сжатая строковая база данных 118 элементов для экономии места пакета данных
-        // Формат: №|Символ|Имя|Масса|Тип|Колонка|Строка|Электроны_по_слоям|Плотность|Плавление|Кипение
-        const rawData = [
-            "1|H|Водород|1.008|s|1|1|1|0.000089|-259°C|-253°C",
-            "2|He|Гелий|4.0026|p|18|1|2|0.000178|-272°C|-269°C",
-            "3|Li|Литий|6.94|s|1|2|2,1|0.534|181°C|1342°C",
-            "4|Be|Бериллий|9.0122|s|2|2|2,2|1.85|1287°C|2471°C",
-            "5|B|Бор|10.81|p|13|2|2,3|2.34|2075°C|4000°C",
-            "6|C|Углерод|12.011|p|14|2|2,4|2.26|3550°C|4827°C",
-            "7|N|Азот|14.007|p|15|2|2,5|0.00125|-210°C|-196°C",
-            "8|O|Кислород|15.999|p|16|2|2,6|0.00143|-218°C|-183°C",
-            "9|F|Фтор|18.998|p|17|2|2,7|0.0017|-220°C|-188°C",
-            "10|Ne|Неон|20.180|p|18|2|2,8|0.0009|-249°C|-246°C",
-            "11|Na|Натрий|22.990|s|1|3|2,8,1|0.971|98°C|883°C",
-            "12|Mg|Магний|24.305|s|2|3|2,8,2|1.738|650°C|1090°C",
-            "13|Al|Алюминий|26.982|p|13|3|2,8,3|2.698|660°C|2519°C",
-            "14|Si|Кремний|28.085|p|14|3|2,8,4|2.329|1414°C|3265°C",
-            "15|P|Фосфор|30.974|p|15|3|2,8,5|1.823|44°C|280°C",
-            "16|S|Сера|32.06|p|16|3|2,8,6|2.07|115°C|445°C",
-            "17|Cl|Хлор|35.45|p|17|3|2,8,7|0.0032|-101°C|-34°C",
-            "18|Ar|Аргон|39.948|p|18|3|2,8,8|0.00178|-189°C|-186°C",
-            "19|K|Калий|39.098|s|1|4|2,8,8,1|0.89|63°C|759°C",
-            "20|Ca|Кальций|40.078|s|2|4|2,8,8,2|1.54|842°C|1484°C",
-            "21|Sc|Скандий|44.956|d|3|4|2,8,9,2|2.99|1541°C|2830°C",
-            "22|Ti|Титан|47.867|d|4|4|2,8,10,2|4.54|1668°C|3287°C",
-            "23|V|Ванадий|50.942|d|5|4|2,8,11,2|6.11|1910°C|3407°C",
-            "24|Cr|Хром|51.996|d|6|4|2,8,13,1|7.15|1907°C|2671°C",
-            "25|Mn|Марганец|54.938|d|7|4|2,8,13,2|7.3|1246°C|2061°C",
-            "26|Fe|Железо|55.845|d|8|4|2,8,14,2|7.874|1538°C|2861°C",
-            "27|Co|Кобальт|58.933|d|9|4|2,8,15,2|8.9|1495°C|2927°C",
-            "28|Ni|Никель|58.693|d|10|4|2,8,16,2|8.908|1455°C|2913°C",
-            "29|Cu|Медь|63.546|d|11|4|2,8,18,1|8.96|1085°C|2562°C",
-            "30|Zn|Цинк|65.38|d|12|4|2,8,18,2|7.14|420°C|907°C",
-            "31|Ga|Галлий|69.723|p|13|4|2,8,18,3|5.91|30°C|2204°C",
-            "32|Ge|Германий|72.630|p|14|4|2,8,18,4|5.323|938°C|2833°C",
-            "33|As|Мышьяк|74.922|p|15|4|2,8,18,5|5.727|817°C|614°C",
-            "34|Se|Селен|78.971|p|16|4|2,8,18,6|4.81|221°C|685°C",
-            "35|Br|Бром|79.904|p|17|4|2,8,18,7|3.1028|-7°C|59°C",
-            "36|Kr|Криптон|83.798|p|18|4|2,8,18,8|0.00373|-157°C|-153°C",
-            "37|Rb|Рубидий|85.468|s|1|5|2,8,18,8,1|1.532|39°C|688°C",
-            "38|Sr|Стронций|87.62|s|2|5|2,8,18,8,2|2.64|777°C|1382°C",
-            "39|Y|Иттрий|88.906|d|3|5|2,8,18,9,2|4.472|1526°C|3336°C",
-            "40|Zr|Цирконий|91.224|d|4|5|2,8,18,10,2|6.52|1855°C|4409°C",
-            "41|Nb|Ниобий|92.906|d|5|5|2,8,18,12,1|8.57|2477°C|4744°C",
-            "42|Mo|Молибден|95.95|d|6|5|2,8,18,13,1|10.28|2623°C|4639°C",
-            "43|Tc|Технеций|98|d|7|5|2,8,18,13,2|11.5|2157°C|4265°C",
-            "44|Ru|Рутений|101.07|d|8|5|2,8,18,15,1|12.45|2334°C|4150°C",
-            "45|Rh|Родий|102.91|d|9|5|2,8,18,16,1|12.41|1964°C|3695°C",
-            "46|Pd|Палладий|106.42|d|10|5|2,8,18,18,0|12.023|1555°C|2963°C",
-            "47|Ag|Серебро|107.87|d|11|5|2,8,18,18,1|10.49|962°C|2162°C",
-            "48|Cd|Кадмий|112.41|d|12|5|2,8,18,18,2|8.65|321°C|767°C",
-            "49|In|Индий|114.82|p|13|5|2,8,18,18,3|7.31|157°C|2072°C",
-            "50|Sn|Олово|118.71|p|14|5|2,8,18,18,4|7.287|232°C|2602°C",
-            "51|Sb|Сурьма|121.76|p|15|5|2,8,18,18,5|6.685|631°C|1587°C",
-            "52|Te|Теллур|127.60|p|16|5|2,8,18,18,6|6.24|450°C|988°C",
-            "53|I|Иод|126.90|p|17|5|2,8,18,18,7|4.93|114°C|184°C",
-            "54|Xe|Ксенон|131.29|p|18|5|2,8,18,18,8|0.00588|-112°C|-108°C",
-            "55|Cs|Цезий|132.91|s|1|6|2,8,18,18,8,1|1.93|28.4°C|671°C",
-            "56|Ba|Барий|137.33|s|2|6|2,8,18,18,8,2|3.51|727°C|1897°C",
-            "57|La|Лантан|138.91|f|4|9|2,8,18,18,9,2|6.16|920°C|3464°C",
-            "58|Ce|Церий|140.12|f|5|9|2,8,18,19,9,2|6.77|798°C|3443°C",
-            "59|Pr|Празеодим|140.91|f|6|9|2,8,18,21,8,2|6.77|931°C|3520°C",
-            "60|Nd|Неодим|144.24|f|7|9|2,8,18,22,8,2|7.01|1021°C|3074°C",
-            "61|Pm|Прометий|145|f|8|9|2,8,18,23,8,2|7.26|1042°C|3000°C",
-            "62|Sm|Самарий|150.36|f|9|9|2,8,18,24,8,2|7.52|1072°C|1794°C",
-            "63|Eu|Европий|151.96|f|10|9|2,8,18,25,8,2|5.24|822°C|1529°C",
-            "64|Gd|Гадолиний|157.25|f|11|9|2,8,18,25,9,2|7.90|1313°C|3250°C",
-            "65|Tb|Тербий|158.93|f|12|9|2,8,18,27,8,2|8.23|1356°C|3230°C",
-            "66|Dy|Диспрозий|162.50|f|13|9|2,8,18,28,8,2|8.54|1412°C|2567°C",
-            "67|Ho|Гольмий|164.93|f|14|9|2,8,18,29,8,2|8.79|1474°C|2700°C",
-            "68|Er|Эрбий|167.26|f|15|9|2,8,18,30,8,2|9.06|1529°C|2868°C",
-            "69|Tm|Тулий|168.93|f|16|9|2,8,18,31,8,2|9.32|1545°C|1950°C",
-            "70|Yb|Иттербий|173.05|f|17|9|2,8,18,32,8,2|6.90|824°C|1196°C",
-            "71|Lu|Лютеций|174.97|f|18|9|2,8,18,32,9,2|9.84|1663°C|3402°C",
-            "72|Hf|Гафний|178.49|d|4|6|2,8,18,32,10,2|13.31|2233°C|4603°C",
-            "73|Ta|Тантал|180.95|d|5|6|2,8,18,32,11,2|16.69|3017°C|5458°C",
-            "74|W|Вольфрам|183.84|d|6|6|2,8,18,32,12,2|19.25|3422°C|5555°C",
-            "75|Re|Рений|186.21|d|7|6|2,8,18,32,13,2|21.02|3186°C|5596°C",
-            "76|Os|Осмий|190.23|d|8|6|2,8,18,32,14,2|22.59|3033°C|5012°C",
-            "77|Ir|Иридий|192.22|d|9|6|2,8,18,32,15,2|22.56|2446°C|4428°C",
-            "78|Pt|Платина|195.08|d|10|6|2,8,18,32,17,1|21.45|1768°C|3825°C",
-            "79|Au|Золото|196.97|d|11|6|2,8,18,32,18,1|19.30|1064°C|2856°C",
-            "80|Hg|Ртуть|200.59|d|12|6|2,8,18,32,18,2|13.53|-39°C|357°C",
-            "81|Tl|Таллий|204.38|p|13|6|2,8,18,32,18,3|11.85|304°C|1473°C",
-            "82|Pb|Свинец|207.2|p|14|6|2,8,18,32,18,4|11.34|327°C|1749°C",
-            "83|Bi|Висмут|208.98|p|15|6|2,8,18,32,18,5|9.78|271°C|1564°C",
-            "84|Po|Полоний|209|p|16|6|2,8,18,32,18,6|9.20|254°C|962°C",
-            "85|At|Астат|210|p|17|6|2,8,18,32,18,7|8.80|302°C|337°C",
-            "86|Rn|Радон|222|p|18|6|2,8,18,32,18,8|0.0097|-71°C|-62°C",
-            "87|Fr|Франций|223|s|1|7|2,8,18,32,18,8,1|1.87|27°C|677°C",
-            "88|Ra|Радий|226|s|2|7|2,8,18,32,18,8,2|5.50|700°C|1737°C",
-            "89|Ac|Актиний|227|f|4|10|2,8,18,32,18,9,2|10.07|1050°C|3198°C",
-            "90|Th|Торий|232.04|f|5|10|2,8,18,32,18,10,2|11.72|1750°C|4788°C",
-            "91|Pa|Протактиний|231.04|f|6|10|2,8,18,32,20,9,2|15.37|1568°C|4027°C",
-            "92|U|Уран|238.03|f|7|10|2,8,18,32,21,9,2|18.95|1132°C|4131°C",
-            "93|Np|Нептуний|237|f|8|10|2,8,18,32,22,9,2|20.25|639°C|3902°C",
-            "94|Pu|Плутоний|244|f|9|10|2,8,18,32,24,8,2|19.84|640°C|3228°C",
-            "95|Am|Америций|243|f|10|10|2,8,18,32,25,8,2|13.67|1176°C|2607°C",
-            "96|Cm|Кюрий|247|f|11|10|2,8,18,32,25,9,2|13.51|1340°C|3110°C",
-            "97|Bk|Берклий|247|f|12|10|2,8,18,32,27,8,2|14.78|986°C|2627°C",
-            "98|Cf|Калифорний|251|f|13|10|2,8,18,32,28,8,2|15.10|900°C|1470°C",
-            "99|Es|Эйнштейний|252|f|14|10|2,8,18,32,29,8,2|8.84|860°C|—",
-            "100|Fm|Фермий|257|f|15|10|2,8,18,32,30,8,2|—|1527°C|—",
-            "101|Md|Менделевий|258|f|16|10|2,8,18,32,31,8,2|—|827°C|—",
-            "102|No|Нобелий|259|f|17|10|2,8,18,32,32,8,2|—|827°C|—",
-            "103|Lr|Лоуренсий|262|f|18|10|2,8,18,32,32,9,2|—|1627°C|—",
-            "104|Rf|Резерфордий|267|unknown|4|7|2,8,18,32,32,10,2|18.1|—|—",
-            "105|Db|Дубний|268|unknown|5|7|2,8,18,32,32,11,2|29.3|—|—",
-            "106|Sg|Сиборгий|269|unknown|6|7|2,8,18,32,32,12,2|35.0|—|—",
-            "107|Bh|Борий|270|unknown|7|7|2,8,18,32,32,13,2|37.1|—|—",
-            "108|Hs|Хассий|277|unknown|8|7|2,8,18,32,32,14,2|40.7|—|—",
-            "109|Mt|Мейтнерий|278|unknown|9|7|2,8,18,32,32,15,2|37.4|—|—",
-            "110|Ds|Дармштадтий|281|unknown|10|7|2,8,18,32,32,17,1|34.8|—|—",
-            "111|Rg|Рентгений|282|unknown|11|7|2,8,18,32,32,18,1|28.7|—|—",
-            "112|Cn|Коперниций|285|unknown|12|7|2,8,18,32,32,18,2|23.7|—|—",
-            "113|Nh|Нихоний|286|unknown|13|7|2,8,18,32,32,18,3|16.0|430°C|1130°C",
-            "114|Fl|Флеровий|289|unknown|14|7|2,8,18,32,32,18,4|14.0|70°C|150°C",
-            "115|Mc|Московий|290|unknown|15|7|2,8,18,32,32,18,5|13.5|400°C|1100°C",
-            "116|Lv|Ливерморий|293|unknown|16|7|2,8,18,32,32,18,6|12.9|435°C|810°C",
-            "117|Ts|Теннессин|294|unknown|17|7|2,8,18,32,32,18,7|7.2|450°C|610°C",
-            "118|Og|Оганесон|294|unknown|18|7|2,8,18,32,32,18,8|5.0|80°C|50°C"
-        ];
-
-        // Преобразование текстовой базы в массив объектов JS
-        const elementsData = rawData.map(row => {
-            const parts = row.split('|');
-            return {
-                num: parseInt(parts[0]), sym: parts[1], name: parts[2], mass: parts[3], type: parts[4],
-                col: parseInt(parts[5]), row: parseInt(parts[6]),
-                shells: parts[7].split(',').map(n => parseInt(n)),
-                density: parts[8], melt: parts[9], boil: parts[10]
-            };
-        });
-
-        const container = document.getElementById('table-container');
-        const searchInput = document.getElementById('search');
-        const modal = document.getElementById('modal');
-        const modalCard = document.getElementById('modal-card');
-
-        // Функция вывода сетки таблицы
-        function renderElements(filter = '') {
-            container.innerHTML = '';
-            const lowerFilter = filter.toLowerCase().trim();
-            elementsData.forEach(el => {
-                const isMatch = !filter || el.name.toLowerCase().includes(lowerFilter) || el.sym.toLowerCase().includes(lowerFilter) || el.num.toString() === lowerFilter;
-                const div = document.createElement('div');
-                div.className = `element ${el.type}-element ${!isMatch && filter ? 'fade-out' : ''}`;
-                div.style.gridColumn = el.col; div.style.gridRow = el.row;
-                div.innerHTML = `<span class="num">${el.num}</span><span class="symbol">${el.sym}</span><span class="name">${el.name}</span><span class="mass">${el.mass}</span>`;
-                div.addEventListener('click', () => openModal(el));
-                container.appendChild(div);
-            });
-        }
-
-        // Функция открытия карточки с честным подсчетом электронов и колец
-        function openModal(el) {
-            document.getElementById('m-num').innerText = el.num;
-            document.getElementById('m-sym').innerText = el.sym;
-            document.getElementById('m-name').innerText = el.name;
-            document.getElementById('m-mass').innerText = el.mass;
-            document.getElementById('m-density').innerText = el.density + (el.density !== "—" && !el.density.includes("°") ? " г/см³" : "");
-            document.getElementById('m-melt').innerText = el.melt;
-            document.getElementById('m-boil').innerText = el.boil;
-            
-            // Правый вертикальный список цифр электронов
-            document.getElementById('m-shells').innerHTML = el.shells.map(s => `<div>${s}</div>`).join('');
-            
-            const ringsContainer = document.getElementById('m-rings');
-            ringsContainer.innerHTML = '';
-            
-            // Динамическая генерация колец и точек строго по массиву shells
-            el.shells.forEach((count, idx) => {
-                if(isNaN(count) || count === 0) return;
-                
-                // Рассчитываем диаметр кольца
-                const size = (idx + 1) * 26 + 45;
-                const orbit = document.createElement('div');
-                orbit.className = 'modal-orbit';
-                orbit.style.width = size + 'px'; orbit.style.height = size + 'px';
-                // Плавная скорость вращения каждого уровня
-                orbit.style.animationDuration = (5 + idx * 2.5) + 's';
-                
-                // Раскладываем точки-электроны равномерно по кругу (360 градусов)
-                for (let i = 0; i < count; i++) {
-                    const angle = (i / count) * 2 * Math.PI;
-                    const r = size / 2;
-                    // Вычисляем точные координаты X и Y для каждой точки на окружности
-                    const x = r + r * Math.cos(angle);
-                    const y = r + r * Math.sin(angle);
-                    
-                    const electron = document.createElement('div');
-                    electron.className = 'modal-electron';
-                    electron.style.left = x + 'px';
-                    electron.style.top = y + 'px';
-                    orbit.appendChild(electron);
-                }
-                ringsContainer.appendChild(orbit);
-            });
-            
-            const familyColor = window.getComputedStyle(document.querySelector(`.${el.type}-element`)).color;
-            modalCard.style.borderColor = familyColor;
-            modalCard.style.boxShadow = `0 20px 50px rgba(0,0,0,0.85), 0 0 30px ${familyColor}`;
-            modal.style.display = 'flex';
-        }
-
-        // Логика управления окном и поиском
-        modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-        searchInput.addEventListener('input', (e) => renderElements(e.target.value));
-        renderElements();
-
-        // Анимация частиц заднего фона Canvas
-        const canvas = document.getElementById('particles-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas); resizeCanvas();
-
-        for (let i = 0; i < 20; i++) {
-            particles.push({
-                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-                radius: Math.random() * 1.2 + 0.4, vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2, alpha: Math.random() * 0.4 + 0.1
-            });
-        }
-
-        function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.x += p.vx; p.y += p.vy;
-                if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
-                if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(0, 180, 98, ${p.alpha})`; ctx.fill();
-            });
-            requestAnimationFrame(animateParticles);
-        }
-        animateParticles();
-    </script>
+    <!-- Подключаем логику скрипта -->
+    <script src="script.js"></script>
 </body>
 </html>
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+}
+
+body {
+    font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #060709; 
+    color: #fff; 
+    height: 100vh;
+    display: flex; 
+    flex-direction: column; 
+    justify-content: flex-start;
+    align-items: center; 
+    overflow: hidden; 
+    padding: 4px; 
+    position: relative;
+}
+
+#particles-canvas { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: 1; 
+    pointer-events: none; 
+}
+
+h1 { 
+    font-size: 0.9rem; 
+    margin-bottom: 2px; 
+    font-weight: 700; 
+    letter-spacing: 1px; 
+    color: #a0aec0; 
+    text-transform: uppercase; 
+    z-index: 10; 
+    text-align: center; 
+}
+
+.search-container { 
+    z-index: 10; 
+    margin-bottom: 4px; 
+    width: 100%; 
+    max-width: 260px; 
+}
+
+.search-input {
+    width: 100%; 
+    padding: 5px 10px; 
+    background: rgba(22, 23, 26, 0.9);
+    border: 2px solid #2d3748; 
+    border-radius: 6px; 
+    color: #fff; 
+    font-size: 0.8rem;
+    outline: none; 
+    transition: all 0.3s; 
+    text-align: center; 
+    font-weight: 600;
+}
+
+.search-input:focus { 
+    border-color: #00b462; 
+    box-shadow: 0 0 10px rgba(0, 180, 98, 0.4); 
+}
+
+/* Обертка с умным скроллом, чтобы элементы не обрезались на экранах смартфонов */
+.table-wrapper { 
+    width: 100%; 
+    height: calc(100vh - 55px); 
+    z-index: 2; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    overflow: auto; 
+    padding: 5px;
+}
+
+/* Сетка таблицы Менделеева */
+.periodic-table {
+    display: grid; 
+    grid-template-columns: repeat(18, minmax(18px, 1fr)); 
+    grid-template-rows: repeat(10, minmax(15px, 1fr)); 
+    gap: 2px; 
+    width: 100%; 
+    height: 100%; 
+    max-width: 100%;
+    max-height: 100%;
+    background: rgba(10, 12, 18, 0.9); 
+    backdrop-filter: blur(10px); 
+    padding: 4px; 
+    border-radius: 8px; 
+    border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.element {
+    background: #16171a; 
+    border: 1px solid currentColor; 
+    border-radius: 2px;
+    padding: 1px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between;
+    align-items: center; 
+    cursor: pointer; 
+    position: relative; 
+    user-select: none; 
+    transition: transform 0.2s, opacity 0.3s;
+}
+
+/* Отключение кликов и эффектов наведения на скрытых при поиске элементах */
+.element.fade-out { 
+    opacity: 0.05; 
+    filter: grayscale(0.9); 
+    pointer-events: none; /* Браузер полностью игнорирует клики по элементу */
+    cursor: default;
+}
+
+.element:hover { 
+    transform: scale(1.15); 
+    z-index: 100; 
+    box-shadow: 0 0 8px currentColor; 
+    background: #202226; 
+}
+
+/* Оптимизированные адаптивные шрифты внутри ячеек элементов */
+.element .num { font-size: min(0.6vw, 0.6vh, 8px); align-self: flex-start; font-weight: 700; color: rgba(255, 255, 255, 0.35); line-height: 1; }
+.element .symbol { font-size: min(1.3vw, 1.3vh, 14px); font-weight: 800; text-align: center; line-height: 1.1; }
+.element .name { font-size: min(0.45vw, 0.45vh, 6px); font-weight: 900; color: #fff; text-align: center; text-transform: uppercase; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; }
+.element .mass { font-size: min(0.48vw, 0.48vh, 6px); text-align: center; line-height: 1; color: rgba(255, 255, 255, 0.5); }
+
+/* Цвета электронных блоков (семейств) */
+.s-element { color: #b6be5d; } 
+.p-element { color: #00b462; } 
+.d-element { color: #ff5c5c; } 
+.f-element { color: #b380a0; } 
+.unknown-element { color: #a0aec0; }
+
+/* Дизайн модального окна */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 99999; backdrop-filter: blur(4px);
+}
+
+.modal-card {
+    background: #140d12; border: 3px solid currentColor; border-radius: 12px; width: 290px; height: 290px; padding: 15px;
+    display: flex; flex-direction: column; justify-content: space-between; position: relative; color: #fff; overflow: hidden;
+}
+
+.modal-card .num { font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.5); }
+.modal-card .symbol { font-size: 3.2rem; font-weight: 800; line-height: 0.85; }
+.modal-card .name { font-size: 1.4rem; font-weight: 800; margin-top: 2px; }
+.modal-card .mass { font-size: 1.1rem; font-weight: 700; border-bottom: 2px solid rgba(255,255,255,0.2); width: 50%; padding-bottom: 2px; margin-bottom: 5px; }
+
+.modal-card .extra-info { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; font-weight: 700; z-index: 5; margin-top: auto; }
+.modal-card .extra-info div { display: flex; justify-content: space-between; width: 100%; max-width: 200px; }
+.modal-card .extra-info span:first-child { color: rgba(255,255,255,0.4); }
+.modal-card .extra-info span:last-child { color: #fff; }
+
+.modal-card .shells-vertical { position: absolute; right: 15px; top: 15px; display: flex; flex-direction: column; gap: 3px; font-size: 1.1rem; font-weight: 800; text-align: right; z-index: 10; }
+.modal-card .rings-container { position: absolute; top: 50%; left: 50%; width: 95%; height: 95%; transform: translate(-50%, -50%); pointer-events: none; z-index: 1; }
+
+.modal-orbit { 
+    position: absolute; top: 50%; left: 50%; 
+    border: 1px solid rgba(255,255,255,0.08); 
+    border-radius: 50%; 
+    transform: translate(-50%, -50%); 
+    animation: spinRing linear infinite; 
+}
+
+.modal-electron { 
+    position: absolute; width: 4px; height: 4px; 
+    background: #fff; border-radius: 50%; 
+    box-shadow: 0 0 6px #fff, 0 0 8px currentColor; 
+    transform: translate(-50%, -50%); 
+}
+
+@keyframes spinRing { 
+    0% { transform: translate(-50%, -50%) rotate(0deg); } 
+    100% { transform: translate(-50%, -50%) rotate(360deg); } 
+}
+
+/* Фикс для маленьких экранов / горизонтальной ориентации смартфона */
+@media (max-height: 400px) or (max-width: 600px) {
+    .periodic-table {
+        width: 750px;
+        height: 380px;
+    }
+}
+// Полная сжатая база данных на 118 химических элементов
+const rawData = [
+    "1|H|Водород|1.008|s|1|1|1|0.000089|-259°C|-253°C",
+    "2|He|Гелий|4.0026|p|18|1|2|0.000178|-272°C|-269°C",
+    "3|Li|Литий|6.94|s|1|2|2,1|0.534|181°C|1342°C",
+    "4|Be|Бериллий|9.0122|s|2|2|2,2|1.85|1287°C|2471°C",
+    "5|B|Бор|10.81|p|13|2|2,3|2.34|2075°C|4000°C",
+    "6|C|Углерод|12.011|p|14|2|2,4|2.26|3550°C|4827°C",
+    "7|N|Азот|14.007|p|15|2|2,5|0.00125|-210°C|-196°C",
+    "8|O|Кислород|15.999|p|16|2|2,6|0.00143|-218°C|-183°C",
+    "9|F|Фтор|18.998|p|17|2|2,7|0.0017|-220°C|-188°C",
+    "10|Ne|Неон|20.180|p|18|2|2,8|0.0009|-249°C|-246°C",
+    "11|Na|Натрий|22.990|s|1|3|2,8,1|0.971|98°C|883°C",
+    "12|Mg|Магний|24.305|s|2|3|2,8,2|1.738|650°C|1090°C",
+    "13|Al|Алюминий|26.982|p|13|3|2,8,3|2.698|660°C|2519°C",
+    "14|Si|Кремний|28.085|p|14|3|2,8,4|2.329|1414°C|3265°C",
+    "15|P|Фосфор|30.974|p|15|3|2,8,5|1.823|44°C|280°C",
+    "16|S|Сера|32.06|p|16|3|2,8,6|2.07|115°C|445°C",
+    "17|Cl|Хлор|35.45|p|17|3|2,8,7|0.0032| -101°C|-34°C",
+    "18|Ar|Аргон|39.948|p|18|3|2,8,8|0.00178|-189°C|-186°C",
+    "19|K|Калий|39.098|s|1|4|2,8,8,1|0.89|63°C|759°C",
+    "20|Ca|Кальций|40.078|s|2|4|2,8,8,2|1.54|842°C|1484°C",
+    "21|Sc|Скандий|44.956|d|3|4|2,8,9,2|2.99|1541°C|2830°C",
+    "22|Ti|Титан|47.867|d|4|4|2,8,10,2|4.54|1668°C|3287°C",
+    "23|V|Ванадий|50.942|d|5|4|2,8,11,2|6.11|1910°C|3407°C",
+    "24|Cr|Хром|51.996|d|6|4|2,8,13,1|7.15|1907°C|2671°C",
+    "25|Mn|Марганец|54.938|d|7|4|2,8,13,2|7.3|1246°C|2061°C",
+    "26|Fe|Железо|55.845|d|8|4|2,8,14,2|7.874|1538°C|2862°C",
+    "27|Co|Кобальт|58.933|d|9|4|2,8,15,2|8.9|1495°C|2927°C",
+    "28|Ni|Никель|58.693|d|10|4|2,8,16,2|8.908|1455°C|2913°C",
+    "29|Cu|Медь|63.546|d|11|4|2,8,18,1|8.96|1085°C|2562°C",
+    "30|Zn|Цинк|65.38|d|12|4|2,8,18,2|7.14|420°C|907°C",
+    "31|Ga|Галлий|69.723|p|13|4|2,8,18,3|5.91|30°C|2204°C",
+    "32|Ge|Германий|72.630|p|14|4|2,8,18,4|5.323|938°C|2833°C",
+    "33|As|Мышьяк|74.922|p|15|4|2,8,18,5|5.727|субл.|614°C",
+    "34|Se|Селен|78.971|p|16|4|2,8,18,6|4.81|221°C|685°C",
+    "35|Br|Бром|79.904|p|17|4|2,8,18,7|3.102|-7°C|59°C",
+    "36|Kr|Криптон|83.798|p|18|4|2,8,18,8|0.00373|-157°C|-153°C",
+    "37|Rb|Рубидий|85.468|s|1|5|2,8,18,8,1|1.532|39°C|688°C",
+    "38|Sr|Стронций|87.62|s|2|5|2,8,18,8,2|2.64|777°C|1382°C",
+    "39|Y|Иттрий|88.906|d|3|5|2,8,18,9,2|4.472|1526°C|3336°C",
+    "40|Zr|Цирконий|91.224|d|4|5|2,8,18,10,2|6.52|1855°C|4409°C",
+    "41|Nb|Ниобий|92.906|d|5|5|2,8,18,12,1|8.57|2477°C|4744°C",
+    "42|Mo|Молибден|95.95|d|6|5|2,8,18,13,1|10.28|2623°C|4639°C",
+    "43|Tc|Технеций|98|d|7|5|2,8,18,13,2|11|2157°C|4265°C",
+    "44|Ru|Рутений|101.07|d|8|5|2,8,18,15,1|12.45|2334°C|4150°C",
+    "45|Rh|Родий|102.91|d|9|5|2,8,18,16,1|12.41|1964°C|3695°C",
+    "46|Pd|Палладий|106.42|d|10|5|2,8,18,18|12.023|1555°C|2963°C",
+    "47|Ag|Серебро|107.87|d|11|5|2,8,18,18,1|10.49|961°C|2162°C",
+    "48|Cd|Кадмий|112.41|d|12|5|2,8,18,18,2|8.65|321°C|767°C",
+    "49|In|Индий|114.82|p|13|5|2,8,18,18,3|7.31|157°C|2072°C",
+    "50|Sn|Олово|118.71|p|14|5|2,8,18,18,4|7.287|232°C|2602°C",
+    "51|Sb|Сурьма|121.76|p|15|5|2,8,18,18,5|6.685|630°C|1587°C",
+    "52|Te|Теллур|127.60|p|16|5|2,8,18,18,6|6.24|450°C|988°C",
+    "53|I|Йод|126.90|p|17|5|2,8,18,18,7|4.933|114°C|184°C",
+    "54|Xe|Ксенон|131.29|p|18|5|2,8,18,18,8|0.00589|-112°C|-108°C",
+    "55|Cs|Цезий|132.91|s|1|6|2,8,18,18,8,1|1.93|29°C|671°C",
+    "56|Ba|Барий|137.33|s|2|6|2,8,18,18,8,2|3.51|727°C|1897°C",
+    "57|La|Лантан|138.91|f|3|6|2,8,18,18,9,2|6.162|920°C|3464°C",
+    "58|Ce|Церий|140.12|f|4|9|2,8,18,19,9,2|6.77|795°C|3443°C",
+    "59|Pr|Празеодим|140.91|f|5|9|2,8,18,21,8,2|6.77|935°C|3520°C",
+    "60|Nd|Неодим|144.24|f|6|9|2,8,18,22,8,2|7.01|1024°C|3074°C",
+    "61|Pm|Прометий|145|f|7|9|2,8,18,23,8,2|7.26|1042°C|3000°C",
+    "62|Sm|Самарий|150.36|f|8|9|2,8,18,24,8,2|7.52|1072°C|1794°C",
+    "63|Eu|Европий|151.96|f|9|9|2,8,18,25,8,2|5.24|826°C|1529°C",
+    "64|Gd|Гадолиний|157.25|f|10|9|2,8,18,25,9,2|7.9|1312°C|3273°C",
+    "65|Tb|Тербий|158.93|f|11|9|2,8,18,27,8,2|8.23|1356°C|3230°C",
+    "66|Dy|Диспрозий|162.50|f|12|9|2,8,18,28,8,2|8.54|1407°C|2567°C",
+    "67|Ho|Гольмий|164.93|f|13|9|2,8,18,29,8,2|8.79|1461°C|2700°C",
+    "68|Er|Эрбий|167.26|f|14|9|2,8,18,30,8,2|9.06|1529°C|2868°C",
+    "69|Tm|Тулий|168.93|f|15|9|2,8,18,31,8,2|9.32|1545°C|1950°C",
+    "70|Yb|Иттербий|173.05|f|16|9|2,8,18,32,8,2|6.9|824°C|1196°C",
+    "71|Lu|Лютеций|174.97|f|17|9|2,8,18,32,9,2|9.84|1663°C|3402°C",
+    "72|Hf|Гафний|178.49|d|4|6|2,8,18,32,10,2|13.31|2233°C|4603°C",
+    "73|Ta|Тантал|180.95|d|5|6|2,8,18,32,11,2|16.69|3017°C|5458°C",
+    "74|W|Вольфрам|183.84|d|6|6|2,8,18,32,12,2|19.25|3422°C|5555°C",
+    "75|Re|Рений|186.21|d|7|6|2,8,18,32,13,2|21.02|3186°C|5596°C",
+    "76|Os|Осмий|190.23|d|8|6|2,8,18,32,14,2|22.59|3033°C|5012°C",
+    "77|Ir|Иридий|192.22|d|9|6|2,8,18,32,15,2|22.56|2446°C|4428°C",
+    "78|Pt|Платина|195.08|d|10|6|2,8,18,32,17,1|21.45|1768°C|3825°C",
+    "79|Au|Золото|196.97|d|11|6|2,8,18,32,18,1|19.3|1064°C|2856°C",
+    "80|Hg|Ртуть|200.59|d|12|6|2,8,18,32,18,2|13.53|-39°C|357°C",
+    "81|Tl|Таллий|204.38|p|13|6|2,8,18,32,18,3|11.85|304°C|1473°C",
+    "82|Pb|Свинец|207.2|p|14|6|2,8,18,32,18,4|11.34|327°C|1749°C",
+    "83|Bi|Висмут|208.98|p|15|6|2,8,18,32,18,5|9.78|271°C|1564°C",
+    "84|Po|Полоний|209|p|16|6|2,8,18,32,18,6|9.196|254°C|962°C",
+    "85|At|Астат|210|p|17|6|2,8,18,32,18,7|7|302°C|337°C",
+    "86|Rn|Радон|222|p|18|6|2,8,18,32,18,8|0.00973|-71°C|-62°C",
+    "87|Fr|Франций|223|s|1|7|2,8,18,32,18,8,1|1.87|27°C|677°C",
+    "88|Ra|Радий|226|s|2|7|2,8,18,32,18,8,2|5.5|700°C|1737°C",
+    "89|Ac|Актиний|227|f|3|7|2,8,18,32,18,18,9,2|10.07|1050°C|3198°C",
+    "90|Th|Торий|232.04|f|4|10|2,8,18,32,18,10,2|11.72|1750°C|4788°C",
+    "91|Pa|Протактиний|231.04|f|5|10|2,8,18,32,20,9,2|15.37|1568°C|4027°C",
+    "92|U|Уран|238.03|f|6|10|2,8,18,32,21,9,2|18.95|1132°C|4131°C",
+    "93|Np|Нептуний|237|f|7|10|2,8,18,32,22,9,2|20.25|639°C|3902°C",
+    "94|Pu|Плутоний|244|f|8|10|2,8,18,32,24,8,2|19.84|640°C|3228°C",
+    "95|Am|Америций|243|f|9|10|2,8,18,32,25,8,2|13.67|1176°C|2607°C",
+    "96|Cm|Кюрий|247|f|10|10|2,8,18,32,25,9,2|13.51|1340°C|3110°C",
+    "97|Bk|Берклий|247|f|11|10|2,8,18,32,27,8,2|14.78|986°C|2627°C",
+    "98|Cf|Калифорний|251|f|12|10|2,8,18,32,28,8,2|15.1|900°C|1470°C",
+    "99|Es|Эйнштейний|252|f|13|10|2,8,18,32,29,8,2|8.84|860°C|н/д",
+    "100|Fm|Фермий|257|f|14|10|2,8,18,32,30,8,2|н/д|1527°C|н/д",
+    "101|Md|Менделевий|258|f|15|10|2,8,18,32,31,8,2|н/д|827°C|н/д",
+    "102|No|Нобелий|259|f|16|10|2,8,18,32,32,8,2|н/д|827°C|н/д",
+    "103|Lr|Лоуренсий|262|f|17|10|2,8,18,32,32,9,2|н/д|1627°C|н/д",
+    "104|Rf|Резерфордий|267|d|4|7|2,8,18,32,32,10,2|н/д|н/д|н/д",
+    "105|Db|Дубний|268|d|5|7|2,8,18,32,32,11,2|н/д|н/д|н/д",
+    "106|Sg|Сиборгий|271|d|6|7|2,8,18,32,32,12,2|н/д|н/д|н/д",
+    "107|Bh|Борий|270|d|7|7|2,8,18,32,32,13,2|н/д|н/д|н/д",
+    "108|Hs|Хассий|277|d|8|7|2,8,18,32,32,14,2|н/д|н/д|н/д",
+    "109|Mt|Мейтнерий|276|unknown|9|7|2,8,18,32,32,15,2|н/д|н/д|н/д",
+    "110|Ds|Дармштадтий|281|unknown|10|7|2,8,18,32,32,17,1|н/д|н/д|н/д",
+    "111|Rg|Рентгений|280|unknown|11|7|2,8,18,32,32,18,1|н/д|н/д|н/д",
+    "112|Cn|Коперниций|285|d|12|7|2,8,18,32,32,18,2|н/д|н/д|н/д",
+    "113|Nh|Нихоний|284|unknown|13|7|2,8,18,32,32,18,3|н/д|н/д|н/д",
+    "114|Fl|Флеровий|289|unknown|14|7|2,8,18,32,32,18,4|н/д|н/д|н/д",
+    "115|Mc|Московий|288|unknown|15|7|2,8,18,32,32,18,5|н/д|н/д|н/д",
+    "116|Lv|Ливерморий|293|unknown|16|7|2,8,18,32,32,18,6|н/д|н/д|н/д",
+    "117|Ts|Теннессин|294|unknown|17|7|2,8,18,32,32,18,7|н/д|н/д|н/д",
+    "118|Og|Оганесон|294|unknown|18|7|2,8,18,32,32,18,8|н/д|н/д|н/д"
+];
+
+// Преобразование текстовой базы в массив готовых JS-объектов
+const elementsData = rawData.map(item => {
+    const parts = item.split('|');
+    return {
+        num: parts[0], sym: parts[1], name: parts[2], mass: parts[3],
+        type: parts[4], col: parseInt(parts[5]), row: parseInt(parts[6]),
+        shells: parts[7].split(','), density: parts[8], melt: parts[9], boil: parts[10]
+    };
+});
+// Константы и глобальные ссылки на DOM элементы
+const container = document.getElementById('table-container');
+const modal = document.getElementById('modal');
+const searchInput = document.getElementById('search');
+
+// 1. Автоматическая генерация HTML-ячеек для элементов
+elementsData.forEach(el => {
+    const div = document.createElement('div');
+    div.className = `element ${el.type}-element`;
+    div.style.gridColumn = el.col;
+    div.style.gridRow = el.row;
+    div.setAttribute('data-num', el.num);
+    div.setAttribute('data-name', el.name.toLowerCase());
+    div.setAttribute('data-sym', el.sym.toLowerCase());
+
+    div.innerHTML = `
+        <div class="num">${el.num}</div>
+        <div class="symbol">${el.sym}</div>
+        <div class="name">${el.name}</div>
+        <div class="mass">${el.mass}</div>
+    `;
+
+    div.addEventListener('click', () => openModal(el));
+    container.appendChild(div);
+});
+
+// 2. Логика живого поиска элементов с полной блокировкой неактивных кликов
+searchInput.addEventListener('input', (e) => {
+    const val = e.target.value.toLowerCase().trim();
+    const gridElements = container.querySelectorAll('.element');
+    
+    gridElements.forEach(item => {
+        const name = item.getAttribute('data-name');
+        const sym = item.getAttribute('data-sym');
+        const num = item.getAttribute('data-num');
+
+        // Проверка на вхождение поискового запроса
+        const isMatch = !val || name.includes(val) || sym.includes(val) || num === val;
+
+        if (isMatch) {
+            item.classList.remove('fade-out');
+        } else {
+            item.classList.add('fade-out'); // Свойство pointer-events: none заблокирует их в CSS
+        }
+    });
+});
+
+// 3. Открытие карточки атома с расчетом орбит
+function openModal(el) {
+    const card = document.getElementById('modal-card');
+    const color = window.getComputedStyle(container.querySelector(`[data-num="${el.num}"]`)).color;
+    card.style.color = color;
+
+    document.getElementById('m-num').innerText = el.num;
+    document.getElementById('m-sym').innerText = el.sym;
+    document.getElementById('m-name').innerText = el.name;
+    document.getElementById('m-mass').innerText = el.mass;
+    document.getElementById('m-density').innerText = el.density;
+    document.getElementById('m-melt').innerText = el.melt;
+    document.getElementById('m-boil').innerText = el.boil;
+
+    // Вывод текста слоев электронов
+    const shellsContainer = document.getElementById('m-shells');
+    shellsContainer.innerHTML = el.shells.map(s => `<div>${s}</div>`).join('');
+
+    // Построение интерактивных CSS-орбит на основе тригонометрии
+    const ringsContainer = document.getElementById('m-rings');
+    ringsContainer.innerHTML = '';
+    
+    const maxRings = el.shells.length;
+    el.shells.forEach((countStr, ringIdx) => {
+        const count = parseInt(countStr);
+        const radius = 35 + ((ringIdx + 1) * (55 / maxRings)); 
+        
+        const orbit = document.createElement('div');
+        orbit.className = 'modal-orbit';
+        orbit.style.width = `${radius}%`;
+        orbit.style.height = `${radius}%`;
+        orbit.style.animationDuration = `${4 + (ringIdx * 2)}s`; 
+
+        for (let i = 0; i < count; i++) {
+            const electron = document.createElement('div');
+            electron.className = 'modal-electron';
+            const angle = (i * 2 * Math.PI) / count;
+            const x = 50 + 50 * Math.cos(angle);
+            const y = 50 + 50 * Math.sin(angle);
+            electron.style.left = `${x}%`;
+            electron.style.top = `${y}%`;
+            orbit.appendChild(electron);
+        }
+        ringsContainer.appendChild(orbit);
+    });
+
+    modal.style.display = 'flex';
+}
+
+// Закрытие модального окна карточки
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+});
+
+// 4. Движок анимированных частиц на HTML5 Canvas
+const canvas = document.getElementById('particles-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+class Particle {
+    constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.speedX = Math.random() * 0.4 - 0.2;
+        this.speedY = Math.random() * 0.4 - 0.2;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+    }
+    draw() {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+for (let i = 0; i < 40; i++) particles.push(new Particle());
+
+function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animateParticles);
+}
+animateParticles();
